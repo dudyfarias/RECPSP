@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const AVATAR_COLORS = ['#b45309', '#9333ea', '#dc2626', '#0d9488', '#2563eb', '#c026d3', '#ea580c', '#16a34a'];
 function getAvatarColor(name) {
@@ -294,6 +294,11 @@ export default function Topic() {
     queryKey: ['related', id],
     queryFn: () => apiFetch(`/topics/${id}/related`),
   });
+
+  // Registrar visualização apenas uma vez ao entrar no tópico
+  useEffect(() => {
+    apiFetch(`/topics/${id}/view`, { method: 'POST' }).catch(() => {});
+  }, [id]);
 
   const topic = data?.topic;
   const posts = data?.posts || [];

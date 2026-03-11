@@ -742,6 +742,13 @@ app.post('/api/topics/:id/vote', auth, (req, res) => {
   res.json({ ok: true, poll_options: options, total_votes: totalVotes, user_vote: option_id });
 });
 
+// =================== VIEWS ===================
+
+app.post('/api/topics/:id/view', (req, res) => {
+  db.prepare('UPDATE topics SET views = views + 1 WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
 // =================== LIKES ===================
 
 app.post('/api/topics/:id/like', auth, (req, res) => {
@@ -768,8 +775,6 @@ app.get('/api/topics/:id', optionalAuth, (req, res) => {
     WHERE t.id = ?
   `).get(req.params.id);
   if (!topic) return res.status(404).json({ error: 'Topico nao encontrado' });
-
-  db.prepare('UPDATE topics SET views = views + 1 WHERE id = ?').run(req.params.id);
 
   const posts = db.prepare(`
     SELECT p.*, u.username, u.role, u.created_at as user_since,
