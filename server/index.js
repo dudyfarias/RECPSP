@@ -869,7 +869,10 @@ app.post('/api/posts/:id/like', auth, (req, res) => {
 
 // =================== BEST ANSWER ===================
 
-app.put('/api/posts/:id/best-answer', auth, adminOnly, (req, res) => {
+app.put('/api/posts/:id/best-answer', auth, (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'moderator') {
+    return res.status(403).json({ error: 'Apenas admin ou moderador podem marcar melhor resposta' });
+  }
   const post = db.prepare('SELECT topic_id, best_answer FROM posts WHERE id = ?').get(req.params.id);
   if (!post) return res.status(404).json({ error: 'Post nao encontrado' });
   // Remove best_answer de outros posts do mesmo topico

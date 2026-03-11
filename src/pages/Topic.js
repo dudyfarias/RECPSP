@@ -68,6 +68,15 @@ function BookmarkIcon({ className }) {
   );
 }
 
+function EyeIcon({ className }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    </svg>
+  );
+}
+
 function ThumbUpIcon({ className }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -96,14 +105,6 @@ function PostCard({ post, topic, isFirst, onDelete, onEdit, onLike, onBestAnswer
 
   return (
     <div className={`border-b border-gray-100 last:border-0 ${post.best_answer ? 'bg-green-50 border-l-4 border-l-green-500' : ''}`}>
-      {post.best_answer === 1 && (
-        <div className="px-5 pt-3">
-          <span className="inline-flex items-center gap-1 text-xs font-bold bg-green-100 text-green-700 px-2.5 py-1 rounded-full">
-            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-            Melhor Resposta
-          </span>
-        </div>
-      )}
       <div className="flex gap-4 p-5">
         {/* Avatar */}
         <div className="flex-shrink-0">
@@ -122,6 +123,15 @@ function PostCard({ post, topic, isFirst, onDelete, onEdit, onLike, onBestAnswer
               <Link to={`/user/${post.user_id}`} className="font-semibold text-sm text-gray-800 hover:text-blue-600 transition">{post.username}</Link>
               {post.role === 'admin' && (
                 <span className="bg-yellow-100 text-yellow-700 text-xs px-1.5 py-0.5 rounded font-bold">Admin</span>
+              )}
+              {post.role === 'moderator' && (
+                <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded font-bold">Moderador</span>
+              )}
+              {post.best_answer === 1 && (
+                <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded font-bold">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                  Melhor Resposta
+                </span>
               )}
             </div>
             <span className="text-xs text-gray-400">{formatDate(post.created_at)}</span>
@@ -161,7 +171,7 @@ function PostCard({ post, topic, isFirst, onDelete, onEdit, onLike, onBestAnswer
                     <button onClick={() => onDelete(post.id)} className="text-xs text-gray-400 hover:text-red-500 transition">Deletar</button>
                   </>
                 )}
-                {currentUser?.role === 'admin' && !isFirst && (
+                {(currentUser?.role === 'admin' || currentUser?.role === 'moderator') && !isFirst && (
                   <button onClick={() => onBestAnswer(post.id)}
                     className={`text-xs transition ${post.best_answer ? 'text-green-600 font-medium' : 'text-gray-400 hover:text-green-500'}`}>
                     {post.best_answer ? 'Remover Melhor' : 'Melhor Resposta'}
@@ -175,12 +185,6 @@ function PostCard({ post, topic, isFirst, onDelete, onEdit, onLike, onBestAnswer
         </div>
       </div>
 
-      {/* Moderator note for best answer */}
-      {post.best_answer === 1 && (
-        <div className="px-5 pb-3 ml-15">
-          <p className="text-xs text-gray-400 italic ml-15">Esse post foi escolhido pelo moderador como melhor resposta.</p>
-        </div>
-      )}
     </div>
   );
 }
@@ -409,8 +413,9 @@ export default function Topic() {
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-400 flex-shrink-0">
+        <div className="flex items-center gap-4 text-xs text-gray-400 flex-shrink-0">
           <span className="flex items-center gap-1"><ReplyIcon className="w-4 h-4" /> {replies.length}</span>
+          <span className="flex items-center gap-1"><EyeIcon className="w-4 h-4" /> {formatNumber(topic.views)}</span>
         </div>
       </div>
 

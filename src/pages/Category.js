@@ -135,8 +135,8 @@ export default function Category() {
       {/* Table header */}
       <div className="flex items-center py-2.5 px-4 text-xs text-gray-500 font-medium uppercase tracking-wider border-b border-gray-200 bg-gray-50">
         <div className="flex-1">Tópico</div>
-        <div className="w-20 text-center font-bold text-gray-700">Respostas</div>
-        <div className="w-24 text-center hidden sm:block">Visualizações</div>
+        <div className="w-20 text-center font-bold text-gray-700 mr-4">Respostas</div>
+        <div className="w-28 text-center hidden sm:block">Visualizações</div>
       </div>
 
       <div className="divide-y divide-gray-100">
@@ -189,8 +189,8 @@ export default function Category() {
                 </div>
               )}
             </div>
-            <div className="w-20 text-center text-sm font-bold text-gray-800">{topic.reply_count}</div>
-            <div className="w-24 text-center text-sm text-gray-500 hidden sm:block">{formatNumber(topic.views)}</div>
+            <div className="w-20 text-center text-sm font-bold text-gray-800 mr-4">{topic.reply_count}</div>
+            <div className="w-28 text-center text-sm text-gray-500 hidden sm:block">{formatNumber(topic.views)}</div>
           </div>
         ))}
       </div>
