@@ -59,6 +59,18 @@ const TOPIC_TYPES = [
   { key: 'video', label: 'Vídeo', Icon: VideoIcon, desc: 'Vídeo ou link externo' },
 ];
 
+// ============= Helpers =============
+const AVATAR_COLORS = ['#b45309', '#9333ea', '#dc2626', '#0d9488', '#2563eb', '#c026d3', '#ea580c', '#16a34a'];
+function getAvatarColor(name) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+function formatNumber(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
+  return String(n);
+}
+
 // ============= Helper: detectar embed de vídeo =============
 function getVideoEmbed(url) {
   if (!url) return null;
@@ -105,6 +117,11 @@ export default function NewTopic() {
   const { data: allTags } = useQuery({
     queryKey: ['tags'],
     queryFn: () => apiFetch('/tags'),
+  });
+
+  const { data: allTopics } = useQuery({
+    queryKey: ['topics'],
+    queryFn: () => apiFetch('/topics'),
   });
 
   // ====== Poll handlers ======
@@ -536,24 +553,119 @@ export default function NewTopic() {
           </div>
         </div>
 
-        {/* ====== Botão de envio ====== */}
-        <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
+        {/* ====== Botões ====== */}
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100 mb-8">
           <button
             type="button"
-            onClick={() => navigate(-1)}
-            className="bg-gray-100 text-gray-600 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
+            className="flex items-center gap-2 bg-red-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-600 transition shadow-sm"
           >
-            Cancelar
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            Perguntar para Especialista
           </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="bg-red-500 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-600 transition shadow-sm disabled:opacity-50"
-          >
-            {submitting ? 'Publicando...' : 'Publicar Tópico'}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="bg-gray-100 text-gray-600 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="bg-red-500 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-600 transition shadow-sm disabled:opacity-50"
+            >
+              {submitting ? 'Publicando...' : 'Publicar Tópico'}
+            </button>
+          </div>
         </div>
       </form>
+
+      {/* ====== Tópicos Relacionados ====== */}
+      {(() => {
+        const userTagList = tags ? tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) : [];
+        const relatedTopics = (allTopics || []).filter(t => {
+          if (!categoryId && userTagList.length === 0) return false;
+          const matchCategory = categoryId && String(t.category_id) === String(categoryId);
+          const matchTags = userTagList.length > 0 && t.tags?.some(tag => userTagList.includes(tag.toLowerCase()));
+          return matchCategory || matchTags;
+        }).slice(0, 8);
+
+        if (relatedTopics.length === 0) return null;
+
+        return (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <p className="text-sm font-medium text-gray-700">
+                Tópicos relacionados que podem ser interessantes
+              </p>
+              <span className="text-xs text-gray-400">— Verifique se sua dúvida já foi respondida</span>
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center py-2.5 px-4 text-xs text-gray-500 font-medium uppercase tracking-wider border-b border-gray-200 bg-gray-50">
+                <div className="flex-1">Tópico</div>
+                <div className="w-28 text-center hidden md:block">Categoria</div>
+                <div className="w-20 text-center hidden sm:block">Curtidas</div>
+                <div className="w-20 text-center font-bold text-gray-700">Respostas</div>
+                <div className="w-24 text-center hidden sm:block">Visualizações</div>
+              </div>
+
+              {/* Rows */}
+              <div className="divide-y divide-gray-50">
+                {relatedTopics.map(topic => (
+                  <div key={topic.id} className="flex items-center py-3 px-4 hover:bg-gray-50 transition">
+                    <div className="mr-3 flex-shrink-0">
+                      <div
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                        style={{ backgroundColor: getAvatarColor(topic.username) }}
+                      >
+                        {topic.username[0].toUpperCase()}
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        {topic.pinned === 1 && <span className="text-gray-400 text-sm">&#x1F4CC;</span>}
+                        {topic.locked === 1 && <span className="text-gray-400 text-sm">&#x1F512;</span>}
+                        <Link
+                          to={`/topic/${topic.id}`}
+                          className="text-gray-800 font-medium text-sm hover:text-blue-600 transition truncate"
+                        >
+                          {topic.title}
+                        </Link>
+                      </div>
+                      {topic.tags?.length > 0 && (
+                        <div className="flex gap-1 mt-1">
+                          {topic.tags.map(tag => (
+                            <span key={tag} className="text-xs bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded-sm font-medium">{tag}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="w-28 text-center hidden md:flex justify-center">
+                      <span
+                        className="text-xs text-white px-2.5 py-1 rounded-sm font-medium truncate"
+                        style={{ backgroundColor: topic.category_color }}
+                      >
+                        {topic.category_name}
+                      </span>
+                    </div>
+                    <div className="w-20 text-center text-sm text-gray-500 hidden sm:block">{topic.like_count || 0}</div>
+                    <div className="w-20 text-center text-sm font-bold text-gray-800">{topic.reply_count}</div>
+                    <div className="w-24 text-center text-sm text-gray-500 hidden sm:block">{formatNumber(topic.views)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
