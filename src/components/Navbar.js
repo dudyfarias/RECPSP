@@ -67,7 +67,7 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <circle cx="12" cy="12" r="3" />
             </svg>
-            <span className="font-semibold text-sm">Configuracoes</span>
+            <span className="font-semibold text-sm">Configurações</span>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -92,7 +92,7 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
 
           {/* Username */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nome de Usuario</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nome de Usuário</label>
             <input
               type="text" value={form.username}
               onChange={e => setForm(p => ({ ...p, username: e.target.value }))}
@@ -124,18 +124,18 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Localizacao</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Localização</label>
             <input
               type="text" value={form.location}
               onChange={e => setForm(p => ({ ...p, location: e.target.value }))}
-              placeholder="Sao Paulo"
+              placeholder="São Paulo"
               className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-red-400 placeholder-gray-400"
             />
           </div>
 
           {/* Organization */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Orgao</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Órgão</label>
             <input
               type="text" value={form.organization}
               onChange={e => setForm(p => ({ ...p, organization: e.target.value }))}
@@ -146,11 +146,11 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
 
           {/* Bio */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Area de trabalho</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Área de trabalho</label>
             <textarea
               value={form.bio}
               onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
-              placeholder="Explique sobre sua atuacao"
+              placeholder="Explique sobre sua atuação"
               rows="3"
               className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-red-400 resize-none placeholder-gray-400"
             />
@@ -162,15 +162,15 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
             <div className="space-y-2.5">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-400" />
-                <span className="text-sm text-gray-600">Quando alguem responde</span>
+                <span className="text-sm text-gray-600">Quando alguém responde</span>
               </label>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-400" />
-                <span className="text-sm text-gray-600">Quando alguem curte</span>
+                <span className="text-sm text-gray-600">Quando alguém curte</span>
               </label>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-400" />
-                <span className="text-sm text-gray-600">Quando alguem menciona</span>
+                <span className="text-sm text-gray-600">Quando alguém menciona</span>
               </label>
             </div>
           </div>
@@ -292,7 +292,7 @@ export default function Navbar() {
           {/* Nav links */}
           <div className="hidden md:flex items-center gap-5 text-sm text-gray-600">
             <Link to="/categories" className="hover:text-gray-900 transition">Categoria</Link>
-            <Link to="/?sort=top" className="hover:text-gray-900 transition">Tendencias</Link>
+            <Link to="/?sort=top" className="hover:text-gray-900 transition">Tendências</Link>
             <Link to="/new-topic" className="hover:text-gray-900 transition">Novo</Link>
           </div>
 
@@ -375,7 +375,7 @@ export default function Navbar() {
                   {showNotifications && (
                     <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden z-50">
                       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
-                        <span className="text-sm font-semibold text-gray-700">Notificacoes</span>
+                        <span className="text-sm font-semibold text-gray-700">Notificações</span>
                         {unreadCount > 0 && (
                           <button onClick={handleMarkAllRead} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
                             Marcar como lidas
@@ -385,7 +385,7 @@ export default function Navbar() {
                       <div className="max-h-80 overflow-y-auto">
                         {(!notifData?.notifications || notifData.notifications.length === 0) ? (
                           <div className="text-center py-8 text-gray-400 text-sm">
-                            Nenhuma notificacao
+                            Nenhuma notificação
                           </div>
                         ) : (
                           notifData.notifications.map(notif => (

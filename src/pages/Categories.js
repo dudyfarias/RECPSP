@@ -49,7 +49,7 @@ export default function Categories() {
                 className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" required />
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-500 mb-1">Descricao</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Descrição</label>
               <input type="text" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
                 className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
             </div>
@@ -78,7 +78,7 @@ export default function Categories() {
             </div>
             {cat.description && <p className="text-sm text-gray-500 mb-3">{cat.description}</p>}
             <div className="flex gap-4 text-xs text-gray-400">
-              <span><strong className="text-gray-600">{cat.topic_count}</strong> topicos</span>
+              <span><strong className="text-gray-600">{cat.topic_count}</strong> tópicos</span>
               <span><strong className="text-gray-600">{cat.post_count}</strong> posts</span>
             </div>
           </Link>

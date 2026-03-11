@@ -27,7 +27,7 @@ export default function Login() {
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 w-full max-w-sm">
         <div className="text-center mb-6">
           <h1 className="text-xl font-bold text-gray-800">Entrar</h1>
-          <p className="text-gray-400 text-sm mt-1">Acesse sua conta no Forum RECPSP</p>
+          <p className="text-gray-400 text-sm mt-1">Acesse sua conta no Fórum RECPSP</p>
         </div>
 
         {error && <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg mb-4 text-sm">{error}</div>}
@@ -52,7 +52,7 @@ export default function Login() {
         </form>
 
         <p className="text-center text-sm text-gray-400 mt-4">
-          Nao tem conta? <Link to="/register" className="text-red-500 font-medium hover:underline">Inscrever-se</Link>
+          Não tem conta? <Link to="/register" className="text-red-500 font-medium hover:underline">Inscrever-se</Link>
         </p>
 
         <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-400 text-center">

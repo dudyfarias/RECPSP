@@ -70,7 +70,7 @@ export default function Category() {
     <div className="max-w-6xl mx-auto px-4 py-6">
       {/* Breadcrumb */}
       <div className="text-sm text-gray-500 mb-4">
-        <Link to="/" className="hover:text-blue-600">Inicio</Link>
+        <Link to="/" className="hover:text-blue-600">Início</Link>
         <span className="mx-2 text-gray-300">/</span>
         <Link to="/categories" className="hover:text-blue-600">Categorias</Link>
         <span className="mx-2 text-gray-300">/</span>
@@ -81,12 +81,12 @@ export default function Category() {
         <div className="flex items-center gap-3">
           <span className="w-4 h-4 rounded-full" style={{ backgroundColor: category?.color }} />
           <h1 className="text-xl font-bold text-gray-800">{category?.name}</h1>
-          <span className="text-sm text-gray-400">{topics?.length || 0} topicos</span>
+          <span className="text-sm text-gray-400">{topics?.length || 0} tópicos</span>
         </div>
         {user && (
           <button onClick={() => setShowNewTopic(!showNewTopic)}
             className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition">
-            + Novo Topico
+            + Novo Tópico
           </button>
         )}
       </div>
@@ -94,18 +94,18 @@ export default function Category() {
       {!user && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-5 text-center text-sm text-gray-600">
           <Link to="/login" className="text-blue-600 font-medium hover:underline">Entre</Link> ou{' '}
-          <Link to="/register" className="text-red-500 font-medium hover:underline">cadastre-se</Link> para criar topicos.
+          <Link to="/register" className="text-red-500 font-medium hover:underline">cadastre-se</Link> para criar tópicos.
         </div>
       )}
 
       {showNewTopic && (
         <form onSubmit={handleCreateTopic} className="bg-white border border-gray-200 rounded-lg p-5 mb-5 shadow-sm">
-          <h3 className="font-bold text-gray-700 text-sm mb-3">Novo Topico</h3>
+          <h3 className="font-bold text-gray-700 text-sm mb-3">Novo Tópico</h3>
           {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
-          <input type="text" placeholder="Titulo" value={form.title}
+          <input type="text" placeholder="Título" value={form.title}
             onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
             className="w-full border rounded-lg px-3 py-2 mb-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" required />
-          <textarea placeholder="Conteudo..." value={form.content}
+          <textarea placeholder="Conteúdo..." value={form.content}
             onChange={e => setForm(p => ({ ...p, content: e.target.value }))}
             className="w-full border rounded-lg px-3 py-2 mb-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 h-28 resize-none" required />
           <input type="text" placeholder="Tags (separadas por virgula)" value={form.tags}
@@ -134,15 +134,15 @@ export default function Category() {
 
       {/* Table header */}
       <div className="flex items-center py-2.5 px-4 text-xs text-gray-500 font-medium uppercase tracking-wider border-b border-gray-200 bg-gray-50">
-        <div className="flex-1">Topico</div>
+        <div className="flex-1">Tópico</div>
         <div className="w-20 text-center hidden sm:block">Curtidas</div>
         <div className="w-20 text-center font-bold text-gray-700">Respostas</div>
-        <div className="w-24 text-center hidden sm:block">Visualizacoes</div>
+        <div className="w-24 text-center hidden sm:block">Visualizações</div>
       </div>
 
       <div className="divide-y divide-gray-100">
         {topics?.length === 0 && (
-          <div className="text-center py-16 text-gray-400 text-sm">Nenhum topico nesta categoria. Seja o primeiro!</div>
+          <div className="text-center py-16 text-gray-400 text-sm">Nenhum tópico nesta categoria. Seja o primeiro!</div>
         )}
         {topics?.map(topic => (
           <div key={topic.id} className="flex items-center py-3 px-4 hover:bg-gray-50 transition group">
@@ -157,7 +157,7 @@ export default function Category() {
                 {topic.pinned === 1 && <span className="text-gray-400 text-sm" title="Fixado">&#x1F4CC;</span>}
                 {topic.locked === 1 && (
                   user?.role === 'admin' ? (
-                    <button onClick={() => handleLock(topic.id)} title="Desbloquear topico" className="text-gray-400 hover:text-green-500 transition">
+                    <button onClick={() => handleLock(topic.id)} title="Desbloquear tópico" className="text-gray-400 hover:text-green-500 transition">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
@@ -169,7 +169,7 @@ export default function Category() {
                   )
                 )}
                 {topic.locked !== 1 && user?.role === 'admin' && (
-                  <button onClick={() => handleLock(topic.id)} title="Bloquear topico"
+                  <button onClick={() => handleLock(topic.id)} title="Bloquear tópico"
                     className="text-gray-200 hover:text-red-400 transition opacity-0 group-hover:opacity-100">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />

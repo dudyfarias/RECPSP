@@ -15,7 +15,7 @@ function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('pt-BR', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-const ROLE_LABELS = { user: 'Usuario', moderator: 'Moderador', admin: 'Administrador' };
+const ROLE_LABELS = { user: 'Usuário', moderator: 'Moderador', admin: 'Administrador' };
 const ROLE_STYLES = {
   user: 'bg-gray-100 text-gray-600',
   moderator: 'bg-blue-100 text-blue-700',
@@ -42,7 +42,7 @@ export default function UserProfile() {
   if (!profile) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 text-center text-gray-400">
-        Usuario nao encontrado.
+        Usuário não encontrado.
       </div>
     );
   }
@@ -53,7 +53,7 @@ export default function UserProfile() {
     <div className="max-w-3xl mx-auto px-4 py-6">
       {/* Breadcrumb */}
       <div className="text-sm text-gray-500 mb-5">
-        <Link to="/" className="hover:text-blue-600">Inicio</Link>
+        <Link to="/" className="hover:text-blue-600">Início</Link>
         <span className="mx-2 text-gray-300">/</span>
         <span className="font-medium text-gray-700">{profile.username}</span>
       </div>
@@ -70,13 +70,13 @@ export default function UserProfile() {
           </div>
           <h1 className="text-xl font-bold text-gray-800">{profile.username}</h1>
           <span className={`text-xs px-3 py-1 rounded-full font-medium mt-2 ${ROLE_STYLES[profile.role] || ROLE_STYLES.user}`}>
-            {ROLE_LABELS[profile.role] || 'Usuario'}
+            {ROLE_LABELS[profile.role] || 'Usuário'}
           </span>
         </div>
 
         {/* Info */}
         <div className="px-6 py-6 space-y-4">
-          {/* Localizacao */}
+          {/* Localização */}
           {profile.location && (
             <div className="flex items-center gap-3">
               <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -84,33 +84,33 @@ export default function UserProfile() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               <div>
-                <p className="text-xs text-gray-400 uppercase font-medium">Localizacao</p>
+                <p className="text-xs text-gray-400 uppercase font-medium">Localização</p>
                 <p className="text-sm text-gray-700">{profile.location}</p>
               </div>
             </div>
           )}
 
-          {/* Orgao */}
+          {/* Órgão */}
           {profile.organization && (
             <div className="flex items-center gap-3">
               <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
               <div>
-                <p className="text-xs text-gray-400 uppercase font-medium">Orgao</p>
+                <p className="text-xs text-gray-400 uppercase font-medium">Órgão</p>
                 <p className="text-sm text-gray-700">{profile.organization}</p>
               </div>
             </div>
           )}
 
-          {/* Area de trabalho / Bio */}
+          {/* Área de trabalho / Bio */}
           {profile.bio && (
             <div className="flex items-start gap-3">
               <svg className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
               <div>
-                <p className="text-xs text-gray-400 uppercase font-medium">Area de trabalho</p>
+                <p className="text-xs text-gray-400 uppercase font-medium">Área de trabalho</p>
                 <p className="text-sm text-gray-700">{profile.bio}</p>
               </div>
             </div>
@@ -131,7 +131,7 @@ export default function UserProfile() {
           <div className="flex gap-6 pt-4 border-t border-gray-100">
             <div className="text-center">
               <p className="text-lg font-bold text-gray-800">{profile.topic_count}</p>
-              <p className="text-xs text-gray-400">Topicos</p>
+              <p className="text-xs text-gray-400">Tópicos</p>
             </div>
             <div className="text-center">
               <p className="text-lg font-bold text-gray-800">{profile.post_count}</p>
@@ -143,7 +143,7 @@ export default function UserProfile() {
         {/* Acoes */}
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3">
           {isOwnProfile ? (
-            <span className="text-sm text-gray-400">Este e o seu perfil</span>
+            <span className="text-sm text-gray-400">Este é o seu perfil</span>
           ) : user ? (
             <Link
               to={`/messages/${profile.id}`}

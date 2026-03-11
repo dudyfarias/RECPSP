@@ -265,7 +265,7 @@ export default function Topic() {
   }
 
   async function handleDeleteTopic() {
-    if (!window.confirm('Deletar este topico e todos os posts?')) return;
+    if (!window.confirm('Deletar este tópico e todos os posts?')) return;
     try {
       await apiFetch(`/topics/${id}`, { method: 'DELETE' }, token);
       queryClient.invalidateQueries({ queryKey: ['topics'] });
@@ -290,7 +290,7 @@ export default function Topic() {
   }
 
   if (isLoading) return <div className="flex justify-center items-center h-64 text-gray-400">Carregando...</div>;
-  if (!topic) return <div className="text-center py-12 text-gray-400">Topico nao encontrado.</div>;
+  if (!topic) return <div className="text-center py-12 text-gray-400">Tópico não encontrado.</div>;
 
   const filters = [
     { key: 'recent', label: 'Recentes' },
@@ -303,7 +303,7 @@ export default function Topic() {
     <div className="max-w-5xl mx-auto px-4 py-6">
       {/* Breadcrumb */}
       <div className="text-sm text-gray-500 mb-4">
-        <Link to="/" className="hover:text-blue-600">Inicio</Link>
+        <Link to="/" className="hover:text-blue-600">Início</Link>
         <span className="mx-2 text-gray-300">/</span>
         <Link to={`/category/${topic.category_id}`} className="hover:text-blue-600">{topic.category_name}</Link>
         <span className="mx-2 text-gray-300">/</span>
@@ -361,7 +361,7 @@ export default function Topic() {
 
       {/* Stats bar */}
       <div className="flex items-center gap-6 py-3 px-1 text-xs text-gray-400 border-b border-gray-200 mb-4">
-        <span><strong className="text-gray-600">{formatNumber(topic.views)}</strong> visualizacoes</span>
+        <span><strong className="text-gray-600">{formatNumber(topic.views)}</strong> visualizações</span>
         <span><strong className="text-gray-600">{topic.like_count || 0}</strong> curtidas</span>
         <span><strong className="text-gray-600">{replies.length}</strong> respostas</span>
       </div>
@@ -369,7 +369,7 @@ export default function Topic() {
       {/* Frequent users */}
       {frequentUsers.length > 0 && (
         <div className="mb-4">
-          <p className="text-xs text-gray-400 mb-2">Usuarios frequentes</p>
+          <p className="text-xs text-gray-400 mb-2">Usuários frequentes</p>
           <div className="flex gap-1.5">
             {frequentUsers.map(u => (
               <Link key={u.id} to={`/user/${u.id}`} title={u.username}>
@@ -410,7 +410,7 @@ export default function Topic() {
 
       {/* End of replies */}
       {replies.length > 0 && (
-        <p className="text-center text-xs text-gray-400 mb-6">Voce chegou no fim das respostas</p>
+        <p className="text-center text-xs text-gray-400 mb-6">Você chegou no fim das respostas</p>
       )}
 
       {/* Guest banner */}
@@ -418,7 +418,7 @@ export default function Topic() {
         <div className="flex items-center justify-between bg-gray-700 text-white px-5 py-3 rounded-lg mb-6">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-xs">F</div>
-            <span className="text-sm">Parece que voce e novo aqui. Registre-se ou entre para postar.</span>
+            <span className="text-sm">Parece que você é novo aqui. Registre-se ou entre para postar.</span>
           </div>
           <div className="flex items-center gap-2">
             <Link to="/login" className="text-sm px-4 py-1.5 rounded border border-gray-400 hover:bg-gray-600 transition">Entrar</Link>
@@ -431,7 +431,7 @@ export default function Topic() {
       {user ? (
         topic.locked && user.role !== 'admin' ? (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-sm text-gray-500 mb-6">
-            Este topico esta fechado.
+            Este tópico está fechado.
           </div>
         ) : (
           <div className="bg-white border border-gray-200 rounded-lg mb-6">
@@ -440,10 +440,10 @@ export default function Topic() {
               {/* Toolbar */}
               <div className="flex items-center gap-0.5 border-b border-gray-100 pb-2 mb-3">
                 <ToolbarBtn title="Negrito"><strong>B</strong></ToolbarBtn>
-                <ToolbarBtn title="Italico"><em>I</em></ToolbarBtn>
-                <ToolbarBtn title="Citacao"><span className="text-lg leading-none">"</span></ToolbarBtn>
-                <ToolbarBtn title="Codigo"><span className="font-mono text-xs">&lt;/&gt;</span></ToolbarBtn>
-                <ToolbarBtn title="Titulo"><span className="font-bold text-xs">H</span></ToolbarBtn>
+                <ToolbarBtn title="Itálico"><em>I</em></ToolbarBtn>
+                <ToolbarBtn title="Citação"><span className="text-lg leading-none">"</span></ToolbarBtn>
+                <ToolbarBtn title="Código"><span className="font-mono text-xs">&lt;/&gt;</span></ToolbarBtn>
+                <ToolbarBtn title="Título"><span className="font-bold text-xs">H</span></ToolbarBtn>
                 <div className="w-px h-5 bg-gray-200 mx-1"></div>
                 <ToolbarBtn title="Lista">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -460,13 +460,13 @@ export default function Topic() {
             <form onSubmit={handleReply} className="px-5 pb-5">
               {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
               <textarea value={reply} onChange={e => setReply(e.target.value)}
-                placeholder="Compartilhe sua experiencia ou duvida..."
+                placeholder="Compartilhe sua experiência ou dúvida..."
                 required
                 className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 h-28 resize-none placeholder-gray-400" />
               <div className="flex items-center justify-between mt-3">
                 <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
                   <input type="checkbox" className="rounded border-gray-300" />
-                  Se inscrever nesse topico
+                  Se inscrever nesse tópico
                 </label>
                 <button type="submit"
                   className="bg-red-500 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition">
@@ -482,16 +482,16 @@ export default function Topic() {
       {related && related.length > 0 && (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-700">Topicos que tambem podem ser interessantes</h3>
+            <h3 className="text-sm font-semibold text-gray-700">Tópicos que também podem ser interessantes</h3>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             {/* Table header */}
             <div className="flex items-center py-2 px-4 text-xs text-gray-400 font-medium uppercase tracking-wider border-b border-gray-100 bg-gray-50">
-              <div className="flex-1">Topicos</div>
+              <div className="flex-1">Tópicos</div>
               <div className="w-24 text-center hidden sm:block">Categoria</div>
               <div className="w-16 text-center hidden sm:block">Curtidas</div>
               <div className="w-16 text-center">Respostas</div>
-              <div className="w-20 text-center hidden sm:block">Visualizacoes</div>
+              <div className="w-20 text-center hidden sm:block">Visualizações</div>
             </div>
             {related.map(r => (
               <div key={r.id} className="flex items-center py-2.5 px-4 hover:bg-gray-50 transition border-b border-gray-50 last:border-0">

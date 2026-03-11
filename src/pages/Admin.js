@@ -10,7 +10,7 @@ function formatDate(dateStr) {
 }
 
 const ROLE_LABELS = {
-  user: 'Usuario',
+  user: 'Usuário',
   moderator: 'Moderador',
   admin: 'Admin',
 };
@@ -51,7 +51,7 @@ export default function Admin() {
   }
 
   async function handleDelete(userId, username) {
-    if (!window.confirm(`Tem certeza que deseja deletar o usuario "${username}"? Isso removera todos os posts e dados.`)) return;
+    if (!window.confirm(`Tem certeza que deseja deletar o usuário "${username}"? Isso removerá todos os posts e dados.`)) return;
     try { await apiFetch(`/admin/users/${userId}`, { method: 'DELETE' }, token); refetch(); }
     catch (err) { alert(err.message); }
   }
@@ -60,11 +60,11 @@ export default function Admin() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-bold text-gray-800 mb-5">Administracao</h1>
+      <h1 className="text-xl font-bold text-gray-800 mb-5">Administração</h1>
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-          Usuarios ({users?.length || 0})
+          Usuários ({users?.length || 0})
         </div>
 
         {isLoading ? (
@@ -73,12 +73,12 @@ export default function Admin() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
               <tr>
-                <th className="text-left px-5 py-2.5">Usuario</th>
+                <th className="text-left px-5 py-2.5">Usuário</th>
                 <th className="text-left px-5 py-2.5 hidden sm:table-cell">Email</th>
                 <th className="text-left px-5 py-2.5">Papel</th>
                 <th className="text-left px-5 py-2.5">Status</th>
                 <th className="text-left px-5 py-2.5 hidden sm:table-cell">Desde</th>
-                <th className="text-center px-5 py-2.5">Acoes</th>
+                <th className="text-center px-5 py-2.5">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -100,7 +100,7 @@ export default function Admin() {
                         onChange={e => handleChangeRole(u.id, e.target.value)}
                         className={`text-xs px-2 py-1 rounded font-medium border-0 cursor-pointer outline-none ${ROLE_STYLES[u.role] || ROLE_STYLES.user}`}
                       >
-                        <option value="user">Usuario</option>
+                        <option value="user">Usuário</option>
                         <option value="moderator">Moderador</option>
                         <option value="admin">Admin</option>
                       </select>
@@ -143,7 +143,7 @@ export default function Admin() {
                         {/* Delete (trash) */}
                         <button
                           onClick={() => handleDelete(u.id, u.username)}
-                          title="Deletar usuario"
+                          title="Deletar usuário"
                           className="w-8 h-8 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-50 transition"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -153,7 +153,7 @@ export default function Admin() {
                       </div>
                     ) : (
                       <div className="text-center">
-                        <span className="text-xs text-gray-400">Voce</span>
+                        <span className="text-xs text-gray-400">Você</span>
                       </div>
                     )}
                   </td>

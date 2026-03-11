@@ -62,29 +62,29 @@ export default function Home() {
     <div className="max-w-6xl mx-auto px-4 py-0">
       {/* Header da tabela */}
       <div className="flex items-center py-2.5 px-4 text-xs text-gray-500 font-medium uppercase tracking-wider border-b border-gray-200 bg-gray-50">
-        <div className="flex-1">Topico</div>
+        <div className="flex-1">Tópico</div>
         <div className="w-28 text-center hidden md:block">Categoria</div>
         <div className="w-20 text-center hidden sm:block">Curtidas</div>
         <div className="w-20 text-center font-bold text-gray-700">Respostas</div>
-        <div className="w-24 text-center hidden sm:block">Visualizacoes</div>
+        <div className="w-24 text-center hidden sm:block">Visualizações</div>
       </div>
 
-      {/* Lista de topicos */}
+      {/* Lista de tópicos */}
       <div className="divide-y divide-gray-100">
         {topics?.length === 0 && (
           <div className="text-center py-16 text-gray-400">
-            Nenhum topico ainda. Seja o primeiro a criar!
+            Nenhum tópico ainda. Seja o primeiro a criar!
           </div>
         )}
 
         {topics?.map((topic, i) => (
           <div key={topic.id}>
-            {/* Banner de convidado - aparece depois do 5o topico */}
+            {/* Banner de convidado - aparece depois do 5o tópico */}
             {i === 5 && !user && showGuestBanner && (
               <div className="flex items-center justify-between bg-gray-700 text-white px-5 py-3 -mx-0">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-xs">F</div>
-                  <span className="text-sm">Parece que voce e novo aqui. Registre-se de graca, aprenda e contribua!</span>
+                  <span className="text-sm">Parece que você é novo aqui. Registre-se de graça, aprenda e contribua!</span>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Link to="/login" className="text-sm px-4 py-1.5 rounded border border-gray-400 hover:bg-gray-600 transition">
@@ -102,7 +102,7 @@ export default function Home() {
               </div>
             )}
 
-            {/* Linha do topico */}
+            {/* Linha do tópico */}
             <div className="flex items-center py-3 px-4 hover:bg-gray-50 transition group">
               {/* Avatar */}
               <div className="mr-3 flex-shrink-0">
@@ -116,13 +116,13 @@ export default function Home() {
                 </Link>
               </div>
 
-              {/* Titulo + tags */}
+              {/* Título + tags */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   {topic.pinned === 1 && <span className="text-gray-400 text-sm" title="Fixado">&#x1F4CC;</span>}
                   {topic.locked === 1 && (
                     user?.role === 'admin' ? (
-                      <button onClick={() => handleLock(topic.id)} title="Desbloquear topico" className="text-gray-400 hover:text-green-500 transition">
+                      <button onClick={() => handleLock(topic.id)} title="Desbloquear tópico" className="text-gray-400 hover:text-green-500 transition">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
@@ -135,7 +135,7 @@ export default function Home() {
                   )}
                   {/* Admin lock button for unlocked topics */}
                   {topic.locked !== 1 && user?.role === 'admin' && (
-                    <button onClick={() => handleLock(topic.id)} title="Bloquear topico"
+                    <button onClick={() => handleLock(topic.id)} title="Bloquear tópico"
                       className="text-gray-200 hover:text-red-400 transition opacity-0 group-hover:opacity-100">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
