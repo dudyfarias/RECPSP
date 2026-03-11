@@ -109,6 +109,25 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
+
+  CREATE TABLE IF NOT EXISTS poll_options (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    topic_id INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    FOREIGN KEY (topic_id) REFERENCES topics(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS poll_votes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    option_id INTEGER NOT NULL,
+    topic_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, topic_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (option_id) REFERENCES poll_options(id),
+    FOREIGN KEY (topic_id) REFERENCES topics(id)
+  );
 `);
 
 // Adicionar coluna best_answer se nao existir
@@ -124,6 +143,10 @@ try { db.exec('ALTER TABLE categories ADD COLUMN color TEXT DEFAULT "#6366f1"');
 try { db.exec('ALTER TABLE users ADD COLUMN location TEXT DEFAULT ""'); } catch {}
 try { db.exec('ALTER TABLE users ADD COLUMN organization TEXT DEFAULT ""'); } catch {}
 try { db.exec('ALTER TABLE users ADD COLUMN bio TEXT DEFAULT ""'); } catch {}
+
+// Adicionar colunas para tipos de topico
+try { db.exec('ALTER TABLE topics ADD COLUMN image_url TEXT DEFAULT ""'); } catch {}
+try { db.exec('ALTER TABLE topics ADD COLUMN video_url TEXT DEFAULT ""'); } catch {}
 
 // =================== SEED ===================
 const adminExists = db.prepare('SELECT id FROM users WHERE role = ?').get('admin');
@@ -159,7 +182,7 @@ if (!adminExists) {
 
 // =================== MIDDLEWARES ===================
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 
 function auth(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
@@ -442,14 +465,30 @@ app.get('/api/categories/:id/topics', optionalAuth, (req, res) => {
 });
 
 app.post('/api/topics', auth, (req, res) => {
-  const { title, category_id, content, tags, type } = req.body;
+  const { title, category_id, content, tags, type, poll_options, image_url, video_url } = req.body;
   if (!title || !category_id || !content) return res.status(400).json({ error: 'Titulo, categoria e conteudo obrigatorios' });
 
   const user = db.prepare('SELECT banned FROM users WHERE id = ?').get(req.user.id);
   if (user?.banned) return res.status(403).json({ error: 'Sua conta foi banida' });
 
-  const topicResult = db.prepare('INSERT INTO topics (title, category_id, user_id, type) VALUES (?, ?, ?, ?)').run(title, category_id, req.user.id, type || 'discussion');
+  // Validacoes por tipo
+  if (type === 'question' && content.length > 100) return res.status(400).json({ error: 'Pergunta deve ter no maximo 100 caracteres' });
+  if (type === 'poll' && (!poll_options || !Array.isArray(poll_options) || poll_options.filter(o => o.trim()).length < 2)) {
+    return res.status(400).json({ error: 'Votacao precisa de pelo menos 2 alternativas' });
+  }
+
+  const topicResult = db.prepare('INSERT INTO topics (title, category_id, user_id, type, image_url, video_url) VALUES (?, ?, ?, ?, ?, ?)')
+    .run(title, category_id, req.user.id, type || 'discussion', image_url || '', video_url || '');
   db.prepare('INSERT INTO posts (content, topic_id, user_id) VALUES (?, ?, ?)').run(content, topicResult.lastInsertRowid, req.user.id);
+
+  // Criar opcoes de votacao
+  if (type === 'poll' && poll_options && Array.isArray(poll_options)) {
+    for (const optionText of poll_options) {
+      if (optionText.trim()) {
+        db.prepare('INSERT INTO poll_options (topic_id, text) VALUES (?, ?)').run(topicResult.lastInsertRowid, optionText.trim());
+      }
+    }
+  }
 
   if (tags && Array.isArray(tags)) {
     for (const tagName of tags) {
@@ -488,6 +527,35 @@ app.delete('/api/topics/:id', auth, (req, res) => {
   db.prepare('DELETE FROM posts WHERE topic_id = ?').run(req.params.id);
   db.prepare('DELETE FROM topics WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
+});
+
+// =================== VOTACAO ===================
+
+app.post('/api/topics/:id/vote', auth, (req, res) => {
+  const { option_id } = req.body;
+  const topicId = parseInt(req.params.id);
+
+  const topic = db.prepare('SELECT type FROM topics WHERE id = ?').get(topicId);
+  if (!topic || topic.type !== 'poll') return res.status(400).json({ error: 'Este topico nao e uma votacao' });
+
+  const option = db.prepare('SELECT id FROM poll_options WHERE id = ? AND topic_id = ?').get(option_id, topicId);
+  if (!option) return res.status(400).json({ error: 'Opcao invalida' });
+
+  try {
+    db.prepare('INSERT INTO poll_votes (user_id, option_id, topic_id) VALUES (?, ?, ?)').run(req.user.id, option_id, topicId);
+  } catch {
+    db.prepare('UPDATE poll_votes SET option_id = ? WHERE user_id = ? AND topic_id = ?').run(option_id, req.user.id, topicId);
+  }
+
+  // Retornar dados atualizados
+  const options = db.prepare(`
+    SELECT po.id, po.text,
+      (SELECT COUNT(*) FROM poll_votes WHERE option_id = po.id) as vote_count
+    FROM poll_options po WHERE po.topic_id = ?
+  `).all(topicId);
+  const totalVotes = options.reduce((sum, o) => sum + o.vote_count, 0);
+
+  res.json({ ok: true, poll_options: options, total_votes: totalVotes, user_vote: option_id });
 });
 
 // =================== LIKES ===================
@@ -547,6 +615,21 @@ app.get('/api/topics/:id', optionalAuth, (req, res) => {
     userLiked = !!db.prepare('SELECT 1 FROM likes WHERE user_id = ? AND topic_id = ?').get(req.user.id, req.params.id);
   }
   topic.user_liked = userLiked;
+
+  // Dados de votacao
+  if (topic.type === 'poll') {
+    const options = db.prepare(`
+      SELECT po.id, po.text,
+        (SELECT COUNT(*) FROM poll_votes WHERE option_id = po.id) as vote_count
+      FROM poll_options po WHERE po.topic_id = ?
+    `).all(req.params.id);
+    topic.poll_options = options;
+    topic.total_votes = options.reduce((sum, o) => sum + o.vote_count, 0);
+    if (req.user) {
+      const userVote = db.prepare('SELECT option_id FROM poll_votes WHERE user_id = ? AND topic_id = ?').get(req.user.id, req.params.id);
+      topic.user_vote = userVote?.option_id || null;
+    }
+  }
 
   res.json({ topic, posts, frequentUsers });
 });

@@ -1,31 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { useAuth } from '../context/AuthContext';
-
-// ============= Helpers =============
-const AVATAR_COLORS = ['#b45309', '#9333ea', '#dc2626', '#0d9488', '#2563eb', '#c026d3', '#ea580c', '#16a34a'];
-function getAvatarColor(name) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-function timeAgo(dateStr) {
-  if (!dateStr) return '';
-  const now = new Date();
-  const d = new Date(dateStr + 'Z');
-  const diff = Math.floor((now - d) / 1000);
-  if (diff < 60) return 'agora';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-  if (diff < 2592000) return `${Math.floor(diff / 86400)}d`;
-  return `${Math.floor(diff / 2592000)}mo`;
-}
-function formatNumber(n) {
-  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
-  return String(n);
-}
 
 // ============= Topic Type Icons =============
 function DiscussionIcon({ active }) {
@@ -55,18 +32,17 @@ function PollIcon({ active }) {
   );
 }
 
-function ImagesIcon({ active }) {
+function ImageIcon({ active }) {
   return (
     <svg className="w-10 h-10" fill="none" stroke={active ? 'white' : '#9ca3af'} viewBox="0 0 24 24" strokeWidth="1.5">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="M21 15l-5-5L5 21" />
     </svg>
   );
 }
 
-function VídeoIcon({ active }) {
+function VideoIcon({ active }) {
   return (
     <svg className="w-10 h-10" fill="none" stroke={active ? 'white' : '#9ca3af'} viewBox="0 0 24 24" strokeWidth="1.5">
       <rect x="3" y="5" width="18" height="14" rx="2" />
@@ -75,73 +51,165 @@ function VídeoIcon({ active }) {
   );
 }
 
-function OtherIcon({ active }) {
-  return (
-    <svg className="w-10 h-10" fill="none" stroke={active ? 'white' : '#9ca3af'} viewBox="0 0 24 24" strokeWidth="1.5">
-      <path strokeLinecap="round" d="M4 6h16M4 10h12M4 14h16M4 18h8" />
-    </svg>
-  );
-}
-
 const TOPIC_TYPES = [
-  { key: 'discussion', label: 'Discussão', Icon: DiscussionIcon },
-  { key: 'question', label: 'Pergunta', Icon: QuestionIcon },
-  { key: 'poll', label: 'Votação', Icon: PollIcon },
-  { key: 'images', label: 'Imagens', Icon: ImagesIcon },
-  { key: 'video', label: 'Vídeo', Icon: VídeoIcon },
-  { key: 'other', label: 'Outro', Icon: OtherIcon },
+  { key: 'discussion', label: 'Discussão', Icon: DiscussionIcon, desc: 'Dissertação ou debate' },
+  { key: 'question', label: 'Pergunta', Icon: QuestionIcon, desc: 'Máximo 100 caracteres' },
+  { key: 'poll', label: 'Votação', Icon: PollIcon, desc: 'Enquete com alternativas' },
+  { key: 'images', label: 'Imagem', Icon: ImageIcon, desc: 'Texto + imagem' },
+  { key: 'video', label: 'Vídeo', Icon: VideoIcon, desc: 'Vídeo ou link externo' },
 ];
 
-// ============= Toolbar Button =============
-function ToolbarBtn({ children, title }) {
-  return (
-    <button type="button" title={title}
-      className="w-8 h-8 flex items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition text-sm">
-      {children}
-    </button>
-  );
+// ============= Helper: detectar embed de vídeo =============
+function getVideoEmbed(url) {
+  if (!url) return null;
+  // YouTube
+  let match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  if (match) return `https://www.youtube.com/embed/${match[1]}`;
+  // Vimeo
+  match = url.match(/vimeo\.com\/(\d+)/);
+  if (match) return `https://player.vimeo.com/video/${match[1]}`;
+  return null;
 }
 
 // ============= Main Component =============
 export default function NewTopic() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
   const [title, setTitle] = useState('');
   const [type, setType] = useState('discussion');
   const [content, setContent] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [tags, setTags] = useState('');
   const [error, setError] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  // Poll state
+  const [pollOptions, setPollOptions] = useState(['', '']);
+
+  // Image state
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageData, setImageData] = useState('');
+
+  // Video state
+  const [videoUrl, setVideoUrl] = useState('');
 
   const MAX_TITLE = 99;
+  const MAX_QUESTION = 100;
 
   const { data: categories } = useQuery({
     queryKey: ['categories'],
     queryFn: () => apiFetch('/categories'),
   });
 
-  const { data: topics } = useQuery({
-    queryKey: ['topics'],
-    queryFn: () => apiFetch('/topics'),
+  const { data: allTags } = useQuery({
+    queryKey: ['tags'],
+    queryFn: () => apiFetch('/tags'),
   });
 
+  // ====== Poll handlers ======
+  function addPollOption() {
+    if (pollOptions.length < 10) {
+      setPollOptions([...pollOptions, '']);
+    }
+  }
+
+  function removePollOption(index) {
+    if (pollOptions.length > 2) {
+      setPollOptions(pollOptions.filter((_, i) => i !== index));
+    }
+  }
+
+  function updatePollOption(index, value) {
+    const updated = [...pollOptions];
+    updated[index] = value;
+    setPollOptions(updated);
+  }
+
+  // ====== Image handler ======
+  function handleImageSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      setError('Imagem muito grande. Máximo 4MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setImagePreview(ev.target.result);
+      setImageData(ev.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeImage() {
+    setImagePreview(null);
+    setImageData('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  // ====== Reset type-specific data when changing type ======
+  function handleTypeChange(newType) {
+    setType(newType);
+    setError('');
+  }
+
+  // ====== Submit ======
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+
     if (!title.trim()) { setError('Insira um título para o tópico.'); return; }
     if (!categoryId) { setError('Selecione uma categoria.'); return; }
-    if (!content.trim()) { setError('Escreva o conteúdo do tópico.'); return; }
 
+    // Validações por tipo
+    if (type === 'question') {
+      if (!content.trim()) { setError('Escreva sua pergunta.'); return; }
+      if (content.length > MAX_QUESTION) { setError(`Pergunta deve ter no máximo ${MAX_QUESTION} caracteres.`); return; }
+    } else if (type === 'poll') {
+      if (!content.trim()) { setError('Escreva a explicação ou pergunta da votação.'); return; }
+      const validOptions = pollOptions.filter(o => o.trim());
+      if (validOptions.length < 2) { setError('Adicione pelo menos 2 alternativas para a votação.'); return; }
+    } else if (type === 'images') {
+      if (!content.trim()) { setError('Escreva uma explicação para a imagem.'); return; }
+      if (!imageData) { setError('Selecione uma imagem para enviar.'); return; }
+    } else if (type === 'video') {
+      if (!content.trim()) { setError('Escreva uma explicação para o vídeo.'); return; }
+      if (!videoUrl.trim()) { setError('Insira o link do vídeo.'); return; }
+    } else {
+      if (!content.trim()) { setError('Escreva o conteúdo do tópico.'); return; }
+    }
+
+    setSubmitting(true);
     try {
       const tagList = tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+      const body = {
+        title,
+        category_id: categoryId,
+        content,
+        tags: tagList,
+        type,
+      };
+
+      if (type === 'poll') {
+        body.poll_options = pollOptions.filter(o => o.trim());
+      }
+      if (type === 'images' && imageData) {
+        body.image_url = imageData;
+      }
+      if (type === 'video' && videoUrl) {
+        body.video_url = videoUrl;
+      }
+
       const result = await apiFetch('/topics', {
         method: 'POST',
-        body: JSON.stringify({ title, category_id: categoryId, content, tags: tagList, type }),
+        body: JSON.stringify(body),
       }, token);
       navigate(`/topic/${result.id}`);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -164,13 +232,10 @@ export default function NewTopic() {
     );
   }
 
-  // Filter related topics
-  const filteredTopics = (topics || []).filter(t =>
-    searchQuery ? t.title.toLowerCase().includes(searchQuery.toLowerCase()) : true
-  ).slice(0, 5);
+  const videoEmbed = getVideoEmbed(videoUrl);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto px-4 py-6">
       {/* Page title */}
       <h1 className="text-lg font-semibold text-gray-800 mb-1">Criar novo Tópico</h1>
       <div className="border-b border-gray-200 mb-6"></div>
@@ -182,8 +247,38 @@ export default function NewTopic() {
           </div>
         )}
 
-        {/* ====== Título ====== */}
+        {/* ====== Tipo de tópico ====== */}
         <div className="mb-6">
+          <label className="block text-sm font-semibold text-gray-700 mb-3">Tipo de tópico</label>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {TOPIC_TYPES.map(t => {
+              const active = type === t.key;
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => handleTypeChange(t.key)}
+                  className={`flex flex-col items-center justify-center py-4 px-2 rounded-lg border-2 transition cursor-pointer ${
+                    active
+                      ? 'bg-red-500 border-red-500 text-white shadow-md'
+                      : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:shadow-sm'
+                  }`}
+                >
+                  <t.Icon active={active} />
+                  <span className={`text-xs font-medium mt-1.5 ${active ? 'text-white' : 'text-gray-600'}`}>
+                    {t.label}
+                  </span>
+                  <span className={`text-[10px] mt-0.5 ${active ? 'text-red-100' : 'text-gray-400'}`}>
+                    {t.desc}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ====== Título ====== */}
+        <div className="mb-5">
           <label className="block text-sm font-semibold text-red-500 mb-2">Título do tópico</label>
           <div className="relative">
             <input
@@ -197,102 +292,210 @@ export default function NewTopic() {
               {MAX_TITLE - title.length}
             </span>
           </div>
-          <p className="text-xs text-gray-400 mt-1.5">
-            Descreva bem o seu tópico, enquanto mantém o assunto o mais resumido possível.
-          </p>
         </div>
 
-        {/* ====== Tipo de tópico ====== */}
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-700 mb-3">Tipo de tópico</label>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-            {TOPIC_TYPES.map(t => {
-              const active = type === t.key;
-              return (
+        {/* ====== Conteúdo dinâmico por tipo ====== */}
+
+        {/* --- DISCUSSÃO --- */}
+        {type === 'discussion' && (
+          <div className="mb-5">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Sua dissertação</label>
+            <textarea
+              value={content}
+              onChange={e => setContent(e.target.value)}
+              placeholder="Escreva sua dissertação, argumento ou discussão aqui. Pode ser tão longo quanto necessário..."
+              className="w-full bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300 h-48 resize-y placeholder-gray-400"
+            />
+            <p className="text-xs text-gray-400 mt-1">Sem limite de caracteres. Escreva livremente.</p>
+          </div>
+        )}
+
+        {/* --- PERGUNTA --- */}
+        {type === 'question' && (
+          <div className="mb-5">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Sua pergunta</label>
+            <div className="relative">
+              <input
+                type="text"
+                value={content}
+                onChange={e => setContent(e.target.value.slice(0, MAX_QUESTION))}
+                placeholder="Digite sua pergunta aqui..."
+                className="w-full bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300 pr-16"
+              />
+              <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium ${
+                content.length >= MAX_QUESTION ? 'text-red-500' : 'text-gray-400'
+              }`}>
+                {MAX_QUESTION - content.length}
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Máximo de {MAX_QUESTION} caracteres. Seja objetivo.</p>
+          </div>
+        )}
+
+        {/* --- VOTAÇÃO --- */}
+        {type === 'poll' && (
+          <div className="mb-5">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Explicação ou pergunta da votação</label>
+            <textarea
+              value={content}
+              onChange={e => setContent(e.target.value)}
+              placeholder="Descreva o contexto da votação ou faça sua pergunta..."
+              className="w-full bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300 h-24 resize-none placeholder-gray-400"
+            />
+
+            <div className="mt-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Alternativas
+                <span className="text-xs text-gray-400 font-normal ml-2">Mínimo 2, máximo 10</span>
+              </label>
+              <div className="space-y-2">
+                {pollOptions.map((option, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <span className="w-6 h-6 flex items-center justify-center rounded-full bg-red-100 text-red-600 text-xs font-bold flex-shrink-0">
+                      {index + 1}
+                    </span>
+                    <input
+                      type="text"
+                      value={option}
+                      onChange={e => updatePollOption(index, e.target.value)}
+                      placeholder={`Alternativa ${index + 1}`}
+                      className="flex-1 bg-gray-100 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300"
+                    />
+                    {pollOptions.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => removePollOption(index)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition"
+                        title="Remover alternativa"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {pollOptions.length < 10 && (
                 <button
-                  key={t.key}
                   type="button"
-                  onClick={() => setType(t.key)}
-                  className={`flex flex-col items-center justify-center py-5 px-2 rounded-lg border-2 transition cursor-pointer ${
-                    active
-                      ? 'bg-red-500 border-red-500 text-white shadow-md'
-                      : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:shadow-sm'
-                  }`}
+                  onClick={addPollOption}
+                  className="mt-2 flex items-center gap-1.5 text-sm text-red-500 hover:text-red-600 font-medium transition"
                 >
-                  <t.Icon active={active} />
-                  <span className={`text-xs font-medium mt-2 ${active ? 'text-white' : 'text-gray-500'}`}>
-                    {t.label}
-                  </span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Adicionar alternativa
                 </button>
-              );
-            })}
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* ====== Corpo do Tópico ====== */}
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Corpo do Tópico</label>
+        {/* --- IMAGEM --- */}
+        {type === 'images' && (
+          <div className="mb-5">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Explicação</label>
+            <textarea
+              value={content}
+              onChange={e => setContent(e.target.value)}
+              placeholder="Descreva o contexto da imagem..."
+              className="w-full bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300 h-24 resize-none placeholder-gray-400"
+            />
 
-          {/* Toolbar */}
-          <div className="flex items-center gap-0.5 mb-2 flex-wrap">
-            <ToolbarBtn title="Preview">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <rect x="2" y="3" width="20" height="14" rx="2" />
-                <path d="M8 21h8M12 17v4" />
-              </svg>
-            </ToolbarBtn>
-            <ToolbarBtn title="Negrito"><strong className="text-sm">B</strong></ToolbarBtn>
-            <ToolbarBtn title="Itálico"><em className="text-sm">I</em></ToolbarBtn>
-            <ToolbarBtn title="Link">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-            </ToolbarBtn>
-            <ToolbarBtn title="Citação"><span className="text-base leading-none font-serif">"</span></ToolbarBtn>
-            <ToolbarBtn title="Código"><span className="font-mono text-xs">&lt;/&gt;</span></ToolbarBtn>
-            <ToolbarBtn title="Upload">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-            </ToolbarBtn>
-            <ToolbarBtn title="Lista">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </ToolbarBtn>
-            <ToolbarBtn title="Título"><span className="font-bold text-sm">H</span></ToolbarBtn>
-            <ToolbarBtn title="Separador"><span className="text-gray-300">—</span></ToolbarBtn>
-            <ToolbarBtn title="Emoji">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                <line x1="9" y1="9" x2="9.01" y2="9" strokeWidth="2.5" strokeLinecap="round" />
-                <line x1="15" y1="9" x2="15.01" y2="9" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
-            </ToolbarBtn>
-            <ToolbarBtn title="Configurações">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            </ToolbarBtn>
-            <ToolbarBtn title="Editar">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-            </ToolbarBtn>
+            <div className="mt-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Imagem</label>
+
+              {!imagePreview ? (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-red-400 hover:bg-red-50/30 transition"
+                >
+                  <svg className="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+                  </svg>
+                  <p className="text-sm text-gray-500">Clique para selecionar uma imagem</p>
+                  <p className="text-xs text-gray-400 mt-1">JPG, PNG ou GIF (máx. 4MB)</p>
+                </div>
+              ) : (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full max-h-80 object-contain rounded-lg border border-gray-200 bg-gray-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 transition shadow-lg"
+                    title="Remover imagem"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+            </div>
           </div>
+        )}
 
-          <textarea
-            value={content}
-            onChange={e => setContent(e.target.value)}
-            placeholder="Coloque sua dúvida ou pensamento..."
-            className="w-full bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300 h-36 resize-none placeholder-gray-400"
-          />
-        </div>
+        {/* --- VÍDEO --- */}
+        {type === 'video' && (
+          <div className="mb-5">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Explicação</label>
+            <textarea
+              value={content}
+              onChange={e => setContent(e.target.value)}
+              placeholder="Descreva o contexto do vídeo..."
+              className="w-full bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300 h-24 resize-none placeholder-gray-400"
+            />
+
+            <div className="mt-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Link do vídeo</label>
+              <input
+                type="url"
+                value={videoUrl}
+                onChange={e => setVideoUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=... ou https://vimeo.com/..."
+                className="w-full bg-gray-100 rounded-lg px-4 py-2.5 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300 placeholder-gray-400"
+              />
+              <p className="text-xs text-gray-400 mt-1">Cole o link do YouTube, Vimeo ou outra plataforma de vídeo.</p>
+
+              {/* Preview do embed */}
+              {videoEmbed && (
+                <div className="mt-3 rounded-lg overflow-hidden border border-gray-200">
+                  <iframe
+                    src={videoEmbed}
+                    title="Preview do vídeo"
+                    className="w-full aspect-video"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+
+              {videoUrl && !videoEmbed && (
+                <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-700">
+                  <p className="font-medium">Link detectado</p>
+                  <p className="text-xs mt-0.5">O vídeo será exibido como link externo. Para preview automático, use YouTube ou Vimeo.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ====== Categoria & Tags ====== */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Categoria</label>
             <select
@@ -313,109 +516,44 @@ export default function NewTopic() {
               type="text"
               value={tags}
               onChange={e => setTags(e.target.value)}
-              placeholder="Use virgulas para separar as tags"
+              placeholder="Use vírgulas para separar as tags"
               className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300 placeholder-gray-400"
             />
+            {allTags?.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {allTags.map(t => (
+                  <button key={t.id} type="button"
+                    onClick={() => {
+                      const currentTags = tags ? tags.split(',').map(s => s.trim()) : [];
+                      if (!currentTags.includes(t.name)) setTags([...currentTags, t.name].filter(Boolean).join(', '));
+                    }}
+                    className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded hover:bg-gray-200 transition">
+                    + {t.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* ====== Botoes ====== */}
-        <div className="flex items-center justify-between mb-8">
+        {/* ====== Botão de envio ====== */}
+        <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
           <button
             type="button"
-            className="bg-red-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-600 transition shadow-sm"
+            onClick={() => navigate(-1)}
+            className="bg-gray-100 text-gray-600 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
           >
-            Perguntar para Especialista
+            Cancelar
           </button>
           <button
             type="submit"
-            className="bg-red-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-600 transition shadow-sm"
+            disabled={submitting}
+            className="bg-red-500 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-600 transition shadow-sm disabled:opacity-50"
           >
-            Criar novo Post
+            {submitting ? 'Publicando...' : 'Publicar Tópico'}
           </button>
         </div>
       </form>
-
-      {/* ====== Tópicos Relacionados ====== */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <p className="text-sm font-medium text-gray-700">Tópicos relacionados e que podem ser interessantes</p>
-          <div className="relative">
-            <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Procurar por tópicos"
-              className="bg-gray-100 rounded-lg pl-9 pr-3 py-1.5 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300 w-56 placeholder-gray-400"
-            />
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center py-2.5 px-4 text-xs text-gray-500 font-medium uppercase tracking-wider border-b border-gray-200 bg-gray-50">
-            <div className="flex-1">Tópicos</div>
-            <div className="w-28 text-center hidden md:block">Categoria</div>
-            <div className="w-20 text-center hidden sm:block">Curtidas</div>
-            <div className="w-20 text-center font-bold text-gray-700">Respostas</div>
-            <div className="w-24 text-center hidden sm:block">Visualizações</div>
-          </div>
-
-          {/* Rows */}
-          {filteredTopics.length === 0 ? (
-            <div className="text-center py-8 text-sm text-gray-400">Nenhum tópico encontrado.</div>
-          ) : (
-            <div className="divide-y divide-gray-50">
-              {filteredTopics.map(topic => (
-                <div key={topic.id} className="flex items-center py-3 px-4 hover:bg-gray-50 transition">
-                  {/* Avatar */}
-                  <div className="mr-3 flex-shrink-0">
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                      style={{ backgroundColor: getAvatarColor(topic.username) }}
-                    >
-                      {topic.username[0].toUpperCase()}
-                    </div>
-                  </div>
-
-                  {/* Título */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      {topic.pinned === 1 && <span className="text-gray-400 text-sm">&#x1F4CC;</span>}
-                      {topic.locked === 1 && <span className="text-gray-400 text-sm">&#x1F512;</span>}
-                      <Link
-                        to={`/topic/${topic.id}`}
-                        className="text-gray-800 font-medium text-sm hover:text-blue-600 transition truncate"
-                      >
-                        {topic.title}
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* Categoria badge */}
-                  <div className="w-28 text-center hidden md:flex justify-center">
-                    <span
-                      className="text-xs text-white px-2.5 py-1 rounded-sm font-medium truncate"
-                      style={{ backgroundColor: topic.category_color }}
-                    >
-                      {topic.category_name}
-                    </span>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="w-20 text-center text-sm text-gray-500 hidden sm:block">{topic.like_count || 0}</div>
-                  <div className="w-20 text-center text-sm font-bold text-gray-800">{topic.reply_count}</div>
-                  <div className="w-24 text-center text-sm text-gray-500 hidden sm:block">{formatNumber(topic.views)}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

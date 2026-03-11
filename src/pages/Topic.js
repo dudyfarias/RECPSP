@@ -199,6 +199,87 @@ function ToolbarBtn({ children, title }) {
   );
 }
 
+// Helper: detectar embed de vídeo
+function getVideoEmbed(url) {
+  if (!url) return null;
+  let match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  if (match) return `https://www.youtube.com/embed/${match[1]}`;
+  match = url.match(/vimeo\.com\/(\d+)/);
+  if (match) return `https://player.vimeo.com/video/${match[1]}`;
+  return null;
+}
+
+// Componente de votação
+function PollSection({ topic, token, onVote }) {
+  const options = topic.poll_options || [];
+  const totalVotes = topic.total_votes || 0;
+  const userVote = topic.user_vote;
+  const hasVoted = userVote !== null && userVote !== undefined;
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-5 mb-4">
+      <div className="flex items-center gap-2 mb-4">
+        <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+          <path strokeLinecap="round" d="M4 8h10M4 12h16M4 16h6" />
+          <rect x="3" y="4" width="18" height="16" rx="2" strokeLinejoin="round" />
+        </svg>
+        <h3 className="font-semibold text-sm text-gray-800">Votação</h3>
+        <span className="text-xs text-gray-400 ml-auto">{totalVotes} voto{totalVotes !== 1 ? 's' : ''}</span>
+      </div>
+      <div className="space-y-2">
+        {options.map(opt => {
+          const pct = totalVotes > 0 ? Math.round((opt.vote_count / totalVotes) * 100) : 0;
+          const isSelected = userVote === opt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => onVote(opt.id)}
+              className={`w-full text-left relative rounded-lg border-2 px-4 py-2.5 transition overflow-hidden ${
+                isSelected
+                  ? 'border-red-400 bg-red-50'
+                  : 'border-gray-200 hover:border-gray-300 bg-white'
+              }`}
+            >
+              {/* Barra de progresso */}
+              {hasVoted && (
+                <div
+                  className={`absolute inset-y-0 left-0 transition-all duration-500 ${
+                    isSelected ? 'bg-red-100' : 'bg-gray-100'
+                  }`}
+                  style={{ width: `${pct}%` }}
+                />
+              )}
+              <div className="relative flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                    isSelected ? 'border-red-500' : 'border-gray-300'
+                  }`}>
+                    {isSelected && <div className="w-2 h-2 rounded-full bg-red-500" />}
+                  </div>
+                  <span className={`text-sm ${isSelected ? 'font-medium text-gray-800' : 'text-gray-600'}`}>
+                    {opt.text}
+                  </span>
+                </div>
+                {hasVoted && (
+                  <span className={`text-xs font-medium ${isSelected ? 'text-red-600' : 'text-gray-400'}`}>
+                    {pct}% ({opt.vote_count})
+                  </span>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      {!token && (
+        <p className="text-xs text-gray-400 mt-3 text-center">
+          <Link to="/login" className="text-blue-600 hover:underline">Entre</Link> para votar.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function Topic() {
   const { id } = useParams();
   const { user, token } = useAuth();
@@ -289,6 +370,12 @@ export default function Topic() {
     catch (err) { alert(err.message); }
   }
 
+  async function handleVote(optionId) {
+    if (!user) return;
+    try { await apiFetch(`/topics/${id}/vote`, { method: 'POST', body: JSON.stringify({ option_id: optionId }) }, token); refetch(); }
+    catch (err) { alert(err.message); }
+  }
+
   if (isLoading) return <div className="flex justify-center items-center h-64 text-gray-400">Carregando...</div>;
   if (!topic) return <div className="text-center py-12 text-gray-400">Tópico não encontrado.</div>;
 
@@ -357,6 +444,54 @@ export default function Topic() {
           <PostCard post={firstPost} topic={topic} isFirst={true} onDelete={handleDeletePost}
             onEdit={handleEditPost} onLike={handleLikePost} onBestAnswer={handleBestAnswer} currentUser={user} />
         </div>
+      )}
+
+      {/* Imagem do tópico */}
+      {topic.type === 'images' && topic.image_url && (
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+          <img
+            src={topic.image_url}
+            alt={topic.title}
+            className="w-full max-h-[600px] object-contain rounded-lg"
+          />
+        </div>
+      )}
+
+      {/* Vídeo do tópico */}
+      {topic.type === 'video' && topic.video_url && (
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+          {getVideoEmbed(topic.video_url) ? (
+            <iframe
+              src={getVideoEmbed(topic.video_url)}
+              title="Vídeo"
+              className="w-full aspect-video rounded-lg"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <a
+              href={topic.video_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 text-blue-600 hover:text-blue-700 transition p-3 bg-blue-50 rounded-lg"
+            >
+              <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="M10 9l5 3-5 3V9z" fill="currentColor" stroke="none" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium">Assistir vídeo externo</p>
+                <p className="text-xs text-gray-400 truncate">{topic.video_url}</p>
+              </div>
+            </a>
+          )}
+        </div>
+      )}
+
+      {/* Votação do tópico */}
+      {topic.type === 'poll' && topic.poll_options && (
+        <PollSection topic={topic} token={token} onVote={handleVote} />
       )}
 
       {/* Stats bar */}
