@@ -178,6 +178,171 @@ if (!adminExists) {
 
   console.log('Admin criado: admin / admin123');
   console.log('Categorias e tags iniciais criadas');
+
+  // =================== DADOS DE TESTE ===================
+  const testPass = bcrypt.hashSync('teste123', 10);
+  const testUsers = [
+    ['MariaLicitacao', 'maria@teste.com', testPass, 'user', 'SP', 'Prefeitura de Sao Paulo'],
+    ['JoaoContratos', 'joao@teste.com', testPass, 'user', 'RJ', 'Tribunal de Contas do Estado'],
+    ['AnaSustentavel', 'ana@teste.com', testPass, 'user', 'MG', 'Secretaria de Meio Ambiente'],
+    ['CarlosPregao', 'carlos@teste.com', testPass, 'user', 'BA', 'Governo do Estado da Bahia'],
+    ['FernandaGestao', 'fernanda@teste.com', testPass, 'user', 'DF', 'Ministerio da Economia'],
+  ];
+  for (const [username, email, pass, role, loc, org] of testUsers) {
+    db.prepare('INSERT INTO users (username, email, password, role, location, organization) VALUES (?, ?, ?, ?, ?, ?)').run(username, email, pass, role, loc, org);
+  }
+
+  // IDs: admin=1, Maria=2, Joao=3, Ana=4, Carlos=5, Fernanda=6
+  // Categorias: 1=Planejamento, 2=Obras, 3=Contratacao Direta, 4=Sustentabilidade, 5=Documentos, 6=Gestao Contratual, 7=Licitacao, 8=Inovacao, 9=Central de Compras, 10=Governanca, 11=Capacitacao
+
+  const testTopics = [
+    // Discussoes
+    { title: 'Impacto do PCA na eficiencia das contratacoes', cat: 1, user: 2, type: 'discussion',
+      content: 'Gostaria de abrir uma discussao sobre como o Plano de Contratacoes Anual tem impactado a eficiencia dos processos nas suas instituicoes. Na minha experiencia, a implementacao do PCA trouxe mais previsibilidade, mas tambem alguns desafios operacionais. Como tem sido na pratica de voces?' },
+    { title: 'Fiscalizacao de contratos de obras: melhores praticas', cat: 2, user: 3, type: 'discussion',
+      content: 'Venho compartilhar algumas praticas que temos adotado na fiscalizacao de contratos de obras publicas. A medicao por etapas com verificacao fotografica tem sido fundamental para garantir a qualidade. Quais ferramentas e metodologias voces utilizam?' },
+    { title: 'Criterios ESG em licitacoes: como implementar?', cat: 4, user: 4, type: 'discussion',
+      content: 'Com a crescente demanda por sustentabilidade nas compras publicas, como voces tem incorporado criterios ESG nos editais? Temos conseguido bons resultados com exigencia de certificacoes ambientais, mas ainda ha resistencia de alguns fornecedores.' },
+    { title: 'Papel do agente de contratacao vs pregoeiro', cat: 10, user: 5, type: 'discussion',
+      content: 'Com a Nova Lei de Licitacoes, o papel do agente de contratacao ficou mais amplo que o do antigo pregoeiro. Na pratica, como tem sido essa transicao nos orgaos de voces? Quais as principais dificuldades encontradas?' },
+    { title: 'Portal PNCP: experiencias e dificuldades', cat: 8, user: 6, type: 'discussion',
+      content: 'O Portal Nacional de Contratacoes Publicas ja e uma realidade. Gostaria de saber como tem sido a experiencia de voces com a plataforma. Encontraram dificuldades na integracao com os sistemas internos? Quais melhorias sugerem?' },
+
+    // Perguntas
+    { title: 'Qual o prazo minimo entre publicacao do edital e abertura no pregao eletronico?', cat: 7, user: 2, type: 'question',
+      content: 'Qual o prazo minimo entre publicacao do edital e abertura no pregao eletronico?' },
+    { title: 'Qual o limite de valor atualizado para dispensa por baixo valor?', cat: 3, user: 5, type: 'question',
+      content: 'Qual o limite de valor atualizado para dispensa por baixo valor?' },
+    { title: 'ETP e obrigatorio para todas as contratacoes?', cat: 1, user: 3, type: 'question',
+      content: 'ETP e obrigatorio para todas as contratacoes?' },
+    { title: 'Precisa de certificacao especifica para ser agente de contratacao?', cat: 10, user: 6, type: 'question',
+      content: 'Precisa de certificacao especifica para ser agente de contratacao?' },
+    { title: 'Existem cursos gratuitos sobre a Nova Lei de Licitacoes?', cat: 11, user: 4, type: 'question',
+      content: 'Existem cursos gratuitos sobre a Nova Lei de Licitacoes?' },
+
+    // Votacoes
+    { title: 'Qual ferramenta digital voce mais utiliza nas contratacoes?', cat: 8, user: 2, type: 'poll',
+      content: 'Queremos mapear as ferramentas mais utilizadas pelos profissionais de contratacoes publicas.',
+      pollOptions: ['ComprasNet/ComprasGov', 'Sistemas proprios do orgao', 'Portal PNCP', 'Banco de Precos', 'Planilhas Excel'] },
+    { title: 'Qual formato de capacitacao voce prefere?', cat: 11, user: 6, type: 'poll',
+      content: 'Para melhorar nossos programas de treinamento, queremos saber a preferencia de formato.',
+      pollOptions: ['Cursos online ao vivo', 'Cursos gravados (EAD)', 'Workshops presenciais', 'Mentorias individuais'] },
+    { title: 'Maior desafio no planejamento de contratacoes?', cat: 1, user: 3, type: 'poll',
+      content: 'Identifique o maior desafio que voce enfrenta na fase de planejamento.',
+      pollOptions: ['Pesquisa de precos', 'Elaboracao do ETP', 'Definicao de requisitos tecnicos', 'Analise de riscos', 'Cronograma apertado'] },
+
+    // Videos
+    { title: 'Aula completa sobre Sistema de Registro de Precos', cat: 9, user: 4, type: 'video',
+      content: 'Excelente aula sobre o Sistema de Registro de Precos na Nova Lei de Licitacoes. Aborda desde os conceitos basicos ate as particularidades da adesao a ata.',
+      videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+    { title: 'Tutorial: Como elaborar o Orcamento Estimativo', cat: 1, user: 5, type: 'video',
+      content: 'Tutorial pratico mostrando passo a passo como elaborar o orcamento estimativo para contratacoes publicas utilizando diferentes fontes de pesquisa de precos.',
+      videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+  ];
+
+  for (const t of testTopics) {
+    const topicRes = db.prepare('INSERT INTO topics (title, category_id, user_id, type, video_url) VALUES (?, ?, ?, ?, ?)')
+      .run(t.title, t.cat, t.user, t.type, t.videoUrl || '');
+    db.prepare('INSERT INTO posts (content, topic_id, user_id) VALUES (?, ?, ?)').run(t.content, topicRes.lastInsertRowid, t.user);
+
+    // Tags aleatorias por topico
+    const topicTags = [];
+    if (t.cat === 1) topicTags.push('Planejamento');
+    if (t.cat === 7 || t.type === 'question') topicTags.push('Licitacao');
+    if (t.cat === 3) topicTags.push('Dispensa');
+    if (t.cat === 4) topicTags.push('Compras Sustentaveis');
+    if (t.cat === 10) topicTags.push('Agentes Publicos');
+    if (t.cat === 8) topicTags.push('Boas Praticas');
+    if (topicTags.length === 0) topicTags.push('Gestao Publica');
+    for (const tagName of topicTags) {
+      const tag = db.prepare('SELECT id FROM tags WHERE name = ?').get(tagName);
+      if (tag) db.prepare('INSERT OR IGNORE INTO topic_tags (topic_id, tag_id) VALUES (?, ?)').run(topicRes.lastInsertRowid, tag.id);
+    }
+
+    // Opcoes de votacao
+    if (t.type === 'poll' && t.pollOptions) {
+      for (const opt of t.pollOptions) {
+        db.prepare('INSERT INTO poll_options (topic_id, text) VALUES (?, ?)').run(topicRes.lastInsertRowid, opt);
+      }
+    }
+  }
+
+  // Respostas nos topicos de discussao e perguntas
+  const replies = [
+    // Topico 1 (PCA) - id 1 e o admin, topicos de teste comecam no id 2
+    { topicId: 2, userId: 3, content: 'Na nossa instituicao o PCA reduziu em 30% o tempo medio dos processos. A chave foi o envolvimento das areas demandantes desde o inicio do planejamento.' },
+    { topicId: 2, userId: 4, content: 'Concordo! Aqui tambem melhorou bastante. O maior desafio foi convencer as areas a planejarem com antecedencia, mas depois que viram os resultados, a adesao aumentou.' },
+    { topicId: 2, userId: 6, content: 'No nosso caso, ainda estamos em fase de implementacao. Uma dica que dou e comecar com as contratacoes recorrentes - elas sao mais faceis de planejar e ja mostram resultados rapidos.' },
+
+    { topicId: 3, userId: 2, content: 'Otimas praticas! Aqui usamos um checklist digital para cada etapa da obra. Cada item verificado gera automaticamente um registro com foto, data e responsavel.' },
+    { topicId: 3, userId: 5, content: 'A medicao fotografica realmente e essencial. Complementaria sugerindo o uso de drones para obras maiores - reduz muito o tempo de verificacao em campo.' },
+
+    { topicId: 4, userId: 2, content: 'Temos usado a exigencia de logistica reversa como criterio de sustentabilidade. Funciona bem para contratos de materiais de consumo.' },
+    { topicId: 4, userId: 6, content: 'Na nossa experiencia, o importante e colocar criterios de sustentabilidade como requisito da contratacao, nao como criterio de julgamento. Assim evita questionamentos.' },
+
+    { topicId: 5, userId: 2, content: 'A transicao tem sido desafiadora. O agente de contratacao agora precisa dominar todo o processo, nao apenas a sessao publica. Capacitacao continua e fundamental.' },
+    { topicId: 5, userId: 4, content: 'Concordo. Aqui criamos um programa de mentoria onde agentes mais experientes acompanham os novos nos primeiros processos.' },
+
+    // Respostas nas perguntas
+    { topicId: 7, userId: 3, content: 'Para bens comuns o prazo minimo e de 8 dias uteis. Para servicos comuns de engenharia, 10 dias uteis. Confira o art. 55 da Lei 14.133/21.' },
+    { topicId: 8, userId: 6, content: 'O valor atualizado para dispensa por baixo valor e de R$ 59.906,02 para compras e servicos, e R$ 119.812,03 para obras e servicos de engenharia (Decreto 12.343/2024).' },
+    { topicId: 9, userId: 2, content: 'O ETP e obrigatorio como regra geral. Porem, ha casos de dispensa em que pode ser simplificado. Veja o art. 18 da Lei 14.133/21.' },
+    { topicId: 10, userId: 3, content: 'Nao existe certificacao obrigatoria por lei, mas o agente deve comprovar formacao compativel. Muitos orgaos exigem cursos da ENAP ou equivalentes.' },
+    { topicId: 11, userId: 5, content: 'Sim! A ENAP oferece varios cursos gratuitos. Tambem recomendo os materiais do TCU e a plataforma EVG (Escola Virtual do Governo).' },
+
+    { topicId: 6, userId: 4, content: 'Otimo mapeamento! Na minha experiencia, o Banco de Precos tem sido cada vez mais utilizado, especialmente para pesquisa de precos de referencia.' },
+    { topicId: 6, userId: 3, content: 'O PNCP ainda precisa evoluir bastante, mas ja e uma ferramenta importante para transparencia. A integracao com outros sistemas ainda e um desafio.' },
+  ];
+
+  for (const r of replies) {
+    db.prepare('INSERT INTO posts (content, topic_id, user_id) VALUES (?, ?, ?)').run(r.content, r.topicId, r.userId);
+  }
+
+  // Likes distribuidos nos topicos
+  const topicLikes = [
+    [2,3],[2,4],[2,5],[2,6],  // topico 2: 4 likes
+    [3,2],[3,4],[3,6],         // topico 3: 3 likes
+    [4,2],[4,3],[4,5],         // topico 4: 3 likes
+    [5,2],[5,4],               // topico 5: 2 likes
+    [6,3],[6,4],[6,5],[6,6],  // topico 6: 4 likes
+    [7,4],[7,5],               // topico 7: 2 likes
+    [8,2],[8,3],               // topico 8: 2 likes
+    [9,5],[9,6],               // topico 9: 2 likes
+    [12,2],[12,3],[12,4],[12,5],[12,6], // topico 12 (poll ferramentas): 5 likes
+    [14,2],[14,3],             // topico 14 (video SRP): 2 likes
+  ];
+  for (const [tid, uid] of topicLikes) {
+    try { db.prepare('INSERT INTO likes (user_id, topic_id) VALUES (?, ?)').run(uid, tid); } catch {}
+  }
+
+  // Votos nas enquetes (topicos 12, 13, 14 = polls - ids dependem da ordem de insercao)
+  // Poll 1 (ferramentas digitais) = topico id 12, opcoes comecam no id 1
+  // Poll 2 (formato capacitacao) = topico id 13
+  // Poll 3 (desafio planejamento) = topico id 14
+  // Buscar opcoes dinamicamente
+  const poll1Options = db.prepare('SELECT id FROM poll_options WHERE topic_id = 12').all();
+  const poll2Options = db.prepare('SELECT id FROM poll_options WHERE topic_id = 13').all();
+  const poll3Options = db.prepare('SELECT id FROM poll_options WHERE topic_id = 14').all();
+
+  if (poll1Options.length >= 5) {
+    try { db.prepare('INSERT INTO poll_votes (user_id, option_id, topic_id) VALUES (?, ?, ?)').run(2, poll1Options[0].id, 12); } catch {}
+    try { db.prepare('INSERT INTO poll_votes (user_id, option_id, topic_id) VALUES (?, ?, ?)').run(3, poll1Options[3].id, 12); } catch {}
+    try { db.prepare('INSERT INTO poll_votes (user_id, option_id, topic_id) VALUES (?, ?, ?)').run(4, poll1Options[0].id, 12); } catch {}
+    try { db.prepare('INSERT INTO poll_votes (user_id, option_id, topic_id) VALUES (?, ?, ?)').run(5, poll1Options[2].id, 12); } catch {}
+    try { db.prepare('INSERT INTO poll_votes (user_id, option_id, topic_id) VALUES (?, ?, ?)').run(6, poll1Options[0].id, 12); } catch {}
+  }
+  if (poll2Options.length >= 4) {
+    try { db.prepare('INSERT INTO poll_votes (user_id, option_id, topic_id) VALUES (?, ?, ?)').run(2, poll2Options[1].id, 13); } catch {}
+    try { db.prepare('INSERT INTO poll_votes (user_id, option_id, topic_id) VALUES (?, ?, ?)').run(3, poll2Options[0].id, 13); } catch {}
+    try { db.prepare('INSERT INTO poll_votes (user_id, option_id, topic_id) VALUES (?, ?, ?)').run(5, poll2Options[2].id, 13); } catch {}
+  }
+  if (poll3Options.length >= 5) {
+    try { db.prepare('INSERT INTO poll_votes (user_id, option_id, topic_id) VALUES (?, ?, ?)').run(2, poll3Options[0].id, 14); } catch {}
+    try { db.prepare('INSERT INTO poll_votes (user_id, option_id, topic_id) VALUES (?, ?, ?)').run(4, poll3Options[1].id, 14); } catch {}
+    try { db.prepare('INSERT INTO poll_votes (user_id, option_id, topic_id) VALUES (?, ?, ?)').run(6, poll3Options[4].id, 14); } catch {}
+  }
+
+  console.log('Dados de teste criados: 5 usuarios, 15 topicos, respostas, likes e votos');
 }
 
 // =================== MIDDLEWARES ===================
