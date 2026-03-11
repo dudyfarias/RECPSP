@@ -155,17 +155,17 @@ if (!adminExists) {
   db.prepare('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)').run('admin', 'admin@forum.com', hashedPassword, 'admin');
 
   const cats = [
-    ['Planejamento', 'Planejamento de contratacoes publicas', '#3b82f6'],
-    ['Obras Publicas', 'Contratacao de obras e servicos de engenharia', '#ef4444'],
-    ['Contratacao Direta', 'Dispensa e inexigibilidade de licitacao', '#22c55e'],
-    ['Sustentabilidade', 'Criterios de sustentabilidade nas compras', '#6b7280'],
-    ['Documentos', 'Modelos de editais e termos de referencia', '#22c55e'],
-    ['Gestao Contratual', 'Fiscalizacao e gestao de contratos', '#6b7280'],
-    ['Licitacao', 'Pregao eletronico e processos licitatorios', '#ef4444'],
-    ['Inovacao', 'Ferramentas digitais e modernizacao', '#f97316'],
-    ['Central de Compras', 'Centralizacao e registro de precos', '#0ea5e9'],
-    ['Governanca', 'Boas praticas e agentes publicos', '#f97316'],
-    ['Capacitacao', 'Formacao e treinamento de agentes', '#6b7280'],
+    ['Planejamento', 'Planejamento de contratações públicas', '#3b82f6'],
+    ['Obras Públicas', 'Contratação de obras e serviços de engenharia', '#ef4444'],
+    ['Contratação Direta', 'Dispensa e inexigibilidade de licitação', '#22c55e'],
+    ['Sustentabilidade', 'Critérios de sustentabilidade nas compras', '#6b7280'],
+    ['Documentos', 'Modelos de editais e termos de referência', '#22c55e'],
+    ['Gestão Contratual', 'Fiscalização e gestão de contratos', '#6b7280'],
+    ['Licitação', 'Pregão eletrônico e processos licitatórios', '#ef4444'],
+    ['Inovação', 'Ferramentas digitais e modernização', '#f97316'],
+    ['Central de Compras', 'Centralização e registro de preços', '#0ea5e9'],
+    ['Governança', 'Boas práticas e agentes públicos', '#f97316'],
+    ['Capacitação', 'Formação e treinamento de agentes', '#6b7280'],
   ];
   for (const [name, desc, color] of cats) {
     db.prepare('INSERT INTO categories (name, description, color) VALUES (?, ?, ?)').run(name, desc, color);
@@ -343,6 +343,24 @@ if (!adminExists) {
   }
 
   console.log('Dados de teste criados: 5 usuarios, 15 topicos, respostas, likes e votos');
+}
+
+// =================== CORRIGIR ACENTOS NAS CATEGORIAS (banco existente) ===================
+const catFixes = [
+  [1, 'Planejamento', 'Planejamento de contratações públicas'],
+  [2, 'Obras Públicas', 'Contratação de obras e serviços de engenharia'],
+  [3, 'Contratação Direta', 'Dispensa e inexigibilidade de licitação'],
+  [4, 'Sustentabilidade', 'Critérios de sustentabilidade nas compras'],
+  [5, 'Documentos', 'Modelos de editais e termos de referência'],
+  [6, 'Gestão Contratual', 'Fiscalização e gestão de contratos'],
+  [7, 'Licitação', 'Pregão eletrônico e processos licitatórios'],
+  [8, 'Inovação', 'Ferramentas digitais e modernização'],
+  [9, 'Central de Compras', 'Centralização e registro de preços'],
+  [10, 'Governança', 'Boas práticas e agentes públicos'],
+  [11, 'Capacitação', 'Formação e treinamento de agentes'],
+];
+for (const [id, name, desc] of catFixes) {
+  try { db.prepare('UPDATE categories SET name = ?, description = ? WHERE id = ?').run(name, desc, id); } catch {}
 }
 
 // =================== MIDDLEWARES ===================

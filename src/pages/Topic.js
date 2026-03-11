@@ -627,7 +627,7 @@ export default function Topic() {
             {/* Table header */}
             <div className="flex items-center py-2 px-4 text-xs text-gray-400 font-medium uppercase tracking-wider border-b border-gray-100 bg-gray-50">
               <div className="flex-1">Tópicos</div>
-              <div className="w-24 text-center hidden sm:block">Categoria</div>
+              <div className="w-24 text-right hidden sm:block">Categoria</div>
               <div className="w-16 text-center hidden sm:block">Curtidas</div>
               <div className="w-16 text-center">Respostas</div>
               <div className="w-20 text-center hidden sm:block">Visualizações</div>
@@ -639,7 +639,7 @@ export default function Topic() {
                     {r.title}
                   </Link>
                 </div>
-                <div className="w-24 text-center hidden sm:flex justify-center">
+                <div className="w-24 hidden sm:flex justify-end">
                   <span className="text-xs text-white px-2 py-0.5 rounded-sm truncate" style={{ backgroundColor: r.category_color }}>
                     {r.category_name}
                   </span>
