@@ -64,7 +64,6 @@ export default function Home() {
       <div className="flex items-center py-2.5 px-4 text-xs text-gray-500 font-medium uppercase tracking-wider border-b border-gray-200 bg-gray-50">
         <div className="flex-1">Tópico</div>
         <div className="w-28 text-right hidden md:block">Categoria</div>
-        <div className="w-20 text-center hidden sm:block">Curtidas</div>
         <div className="w-20 text-center font-bold text-gray-700">Respostas</div>
         <div className="w-24 text-center hidden sm:block">Visualizações</div>
       </div>
@@ -169,11 +168,6 @@ export default function Home() {
                 >
                   {topic.category_name}
                 </Link>
-              </div>
-
-              {/* Curtidas */}
-              <div className="w-20 text-center text-sm text-gray-500 hidden sm:block">
-                {topic.like_count || 0}
               </div>
 
               {/* Respostas */}

@@ -153,10 +153,6 @@ function PostCard({ post, topic, isFirst, onDelete, onEdit, onLike, onBestAnswer
                 <button className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition">
                   <ThumbDownIcon className="w-4 h-4" />
                 </button>
-                <button className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-400 transition">
-                  <HeartIcon filled={false} className="w-4 h-4" />
-                  <span>{Math.floor((post.like_count || 0) * 0.6)}</span>
-                </button>
               </div>
               <div className="flex items-center gap-3">
                 {canModify && !topic.locked && (
@@ -364,12 +360,6 @@ export default function Topic() {
     catch (err) { alert(err.message); }
   }
 
-  async function handleLikeTopic() {
-    if (!user) return;
-    try { await apiFetch(`/topics/${id}/like`, { method: 'POST' }, token); refetch(); }
-    catch (err) { alert(err.message); }
-  }
-
   async function handleVote(optionId) {
     if (!user) return;
     try { await apiFetch(`/topics/${id}/vote`, { method: 'POST', body: JSON.stringify({ option_id: optionId }) }, token); refetch(); }
@@ -415,11 +405,7 @@ export default function Topic() {
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-400 flex-shrink-0">
-          <button onClick={handleLikeTopic} className={`flex items-center gap-1 ${topic.user_liked ? 'text-blue-600' : 'hover:text-blue-500'} transition`}>
-            <ThumbUpIcon className="w-4 h-4" /> {topic.like_count || 0}
-          </button>
           <span className="flex items-center gap-1"><ReplyIcon className="w-4 h-4" /> {replies.length}</span>
-          <span className="flex items-center gap-1"><HeartIcon filled={false} className="w-4 h-4" /> {Math.floor((topic.like_count || 0) * 0.6)}</span>
         </div>
       </div>
 
@@ -501,7 +487,6 @@ export default function Topic() {
       {/* Stats bar */}
       <div className="flex items-center gap-6 py-3 px-1 text-xs text-gray-400 border-b border-gray-200 mb-4">
         <span><strong className="text-gray-600">{formatNumber(topic.views)}</strong> visualizações</span>
-        <span><strong className="text-gray-600">{topic.like_count || 0}</strong> curtidas</span>
         <span><strong className="text-gray-600">{replies.length}</strong> respostas</span>
       </div>
 
@@ -628,7 +613,6 @@ export default function Topic() {
             <div className="flex items-center py-2 px-4 text-xs text-gray-400 font-medium uppercase tracking-wider border-b border-gray-100 bg-gray-50">
               <div className="flex-1">Tópicos</div>
               <div className="w-24 text-right hidden sm:block">Categoria</div>
-              <div className="w-16 text-center hidden sm:block">Curtidas</div>
               <div className="w-16 text-center">Respostas</div>
               <div className="w-20 text-center hidden sm:block">Visualizações</div>
             </div>
@@ -644,7 +628,6 @@ export default function Topic() {
                     {r.category_name}
                   </span>
                 </div>
-                <div className="w-16 text-center text-xs text-gray-500 hidden sm:block">{r.like_count || 0}</div>
                 <div className="w-16 text-center text-xs font-bold text-gray-700">{r.reply_count || 0}</div>
                 <div className="w-20 text-center text-xs text-gray-500 hidden sm:block">{formatNumber(r.views)}</div>
               </div>
