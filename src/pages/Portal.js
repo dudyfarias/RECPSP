@@ -28,9 +28,10 @@ const sections = [
   {
     title: 'Vade Mecum',
     description: 'Legislação atualizada sobre licitações e contratos administrativos',
-    to: '/vademecum',
+    to: 'https://vademecum.lablogsp.org',
     color: 'from-emerald-500 to-teal-500',
-    available: false,
+    available: true,
+    external: true,
     icon: (
       <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -64,7 +65,20 @@ export default function Portal() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl w-full">
         {sections.map((section) => (
           <div key={section.title} className="relative">
-            {section.available ? (
+            {section.available && section.external ? (
+              <a
+                href={section.to}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`block bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group`}
+              >
+                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br ${section.color} text-white mb-4 group-hover:scale-110 transition-transform`}>
+                  {section.icon}
+                </div>
+                <h2 className="text-lg font-bold text-gray-800 mb-2">{section.title}</h2>
+                <p className="text-sm text-gray-500 leading-relaxed">{section.description}</p>
+              </a>
+            ) : section.available ? (
               <Link
                 to={section.to}
                 className={`block bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group`}

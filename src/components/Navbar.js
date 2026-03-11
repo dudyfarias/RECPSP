@@ -324,7 +324,7 @@ export default function Navbar() {
               <>
                 <Link to="/forum" className="hover:text-gray-900 transition">Fórum</Link>
                 <Link to="/documentos" className="hover:text-gray-900 transition">Modelos de Documentos</Link>
-                <Link to="/vademecum" className="hover:text-gray-900 transition">Vade Mecum</Link>
+                <a href="https://vademecum.lablogsp.org" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition">Vade Mecum</a>
                 <Link to="/capacitacao" className="hover:text-gray-900 transition">Capacitação</Link>
               </>
             )}
