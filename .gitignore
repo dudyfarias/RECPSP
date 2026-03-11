@@ -27,3 +27,6 @@ server/forum.db
 
 # environment
 .env
+
+# claude settings
+.claude/
