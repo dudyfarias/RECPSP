@@ -9,7 +9,8 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'forum-recpsp-secret-2024';
 
-const db = new Database(path.join(__dirname, 'forum.db'));
+const dbPath = process.env.DB_PATH || path.join(__dirname, 'forum.db');
+const db = new Database(dbPath);
 
 // =================== SCHEMA ===================
 db.exec(`
