@@ -306,7 +306,7 @@ export default function Navbar() {
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-6">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
-            <img src="/logo-recpsp.png" alt="RECPSP" className="h-9" />
+            <img src="/logo-recpsp.svg" alt="RECPSP" className="h-9" />
           </Link>
 
           {/* Nav links */}

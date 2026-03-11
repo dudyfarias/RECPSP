@@ -42,7 +42,7 @@ export default function Register() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-8">
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 w-full max-w-sm">
         <div className="text-center mb-6">
-          <img src="/logo-recpsp.png" alt="RECPSP" className="h-16 mx-auto mb-3" />
+          <img src="/logo-recpsp.svg" alt="RECPSP" className="h-16 mx-auto mb-3" />
           <h1 className="text-xl font-bold text-gray-800">Inscrever-se</h1>
           <p className="text-gray-400 text-sm mt-1">Crie sua conta no Fórum RECPSP</p>
         </div>
