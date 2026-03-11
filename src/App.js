@@ -12,6 +12,7 @@ import Admin from './pages/Admin';
 import NewTopic from './pages/NewTopic';
 import UserProfile from './pages/UserProfile';
 import Messages from './pages/Messages';
+import Portal from './pages/Portal';
 
 const queryClient = new QueryClient();
 
@@ -23,7 +24,8 @@ function App() {
           <div className="min-h-screen bg-gray-50">
             <Navbar />
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<Portal />} />
+              <Route path="/forum" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/categories" element={<Categories />} />

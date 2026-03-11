@@ -33,7 +33,7 @@ export default function Register() {
     try {
       const data = await apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(form) });
       login(data.token, data.user);
-      navigate('/');
+      navigate('/forum');
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
   }

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { useState, useRef, useEffect } from 'react';
@@ -237,7 +237,9 @@ function timeAgo(dateStr) {
 export default function Navbar() {
   const { user, token, logout, login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
+  const isInForum = location.pathname.startsWith('/forum') || location.pathname.startsWith('/topic') || location.pathname.startsWith('/category') || location.pathname.startsWith('/categories') || location.pathname.startsWith('/new-topic');
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -311,9 +313,21 @@ export default function Navbar() {
 
           {/* Nav links */}
           <div className="hidden md:flex items-center gap-5 text-sm text-gray-600">
-            <Link to="/categories" className="hover:text-gray-900 transition">Categoria</Link>
-            <Link to="/?sort=top" className="hover:text-gray-900 transition">Tendências</Link>
-            <Link to="/new-topic" className="hover:text-gray-900 transition">Novo</Link>
+            {isInForum ? (
+              <>
+                <Link to="/forum" className="hover:text-gray-900 transition">Fórum</Link>
+                <Link to="/categories" className="hover:text-gray-900 transition">Categoria</Link>
+                <Link to="/forum?sort=top" className="hover:text-gray-900 transition">em Alta</Link>
+                <Link to="/new-topic" className="hover:text-gray-900 transition">Novo</Link>
+              </>
+            ) : (
+              <>
+                <Link to="/forum" className="hover:text-gray-900 transition">Fórum</Link>
+                <Link to="/documentos" className="hover:text-gray-900 transition">Modelos de Documentos</Link>
+                <Link to="/vademecum" className="hover:text-gray-900 transition">Vade Mecum</Link>
+                <Link to="/capacitacao" className="hover:text-gray-900 transition">Capacitação</Link>
+              </>
+            )}
           </div>
 
           {/* Search */}

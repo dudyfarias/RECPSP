@@ -17,7 +17,7 @@ export default function Login() {
     try {
       const data = await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify(form) });
       login(data.token, data.user);
-      navigate('/');
+      navigate('/forum');
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
   }
