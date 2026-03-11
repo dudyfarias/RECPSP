@@ -1,0 +1,194 @@
+import { useQuery } from '@tanstack/react-query';
+import { Link, useSearchParams } from 'react-router-dom';
+import { apiFetch } from '../api';
+import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
+
+// Cores para os avatares
+const AVATAR_COLORS = [
+  '#b45309', '#9333ea', '#dc2626', '#0d9488', '#2563eb', '#c026d3', '#ea580c', '#16a34a',
+];
+
+function getAvatarColor(name) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  const now = new Date();
+  const d = new Date(dateStr + 'Z');
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'agora';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  if (diff < 2592000) return `${Math.floor(diff / 86400)}d`;
+  return `${Math.floor(diff / 2592000)}mo`;
+}
+
+function formatNumber(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
+  return String(n);
+}
+
+export default function Home() {
+  const { user, token } = useAuth();
+  const [searchParams] = useSearchParams();
+  const sort = searchParams.get('sort') || '';
+  const [showGuestBanner, setShowGuestBanner] = useState(true);
+
+  const { data: topics, isLoading, refetch } = useQuery({
+    queryKey: ['topics', sort],
+    queryFn: () => apiFetch(`/topics${sort ? `?sort=${sort}` : ''}`),
+  });
+
+  async function handleLock(topicId) {
+    try {
+      await apiFetch(`/topics/${topicId}/lock`, { method: 'PUT' }, token);
+      refetch();
+    } catch (err) { alert(err.message); }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-gray-400">Carregando...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-0">
+      {/* Header da tabela */}
+      <div className="flex items-center py-2.5 px-4 text-xs text-gray-500 font-medium uppercase tracking-wider border-b border-gray-200 bg-gray-50">
+        <div className="flex-1">Topico</div>
+        <div className="w-28 text-center hidden md:block">Categoria</div>
+        <div className="w-20 text-center hidden sm:block">Curtidas</div>
+        <div className="w-20 text-center font-bold text-gray-700">Respostas</div>
+        <div className="w-24 text-center hidden sm:block">Visualizacoes</div>
+      </div>
+
+      {/* Lista de topicos */}
+      <div className="divide-y divide-gray-100">
+        {topics?.length === 0 && (
+          <div className="text-center py-16 text-gray-400">
+            Nenhum topico ainda. Seja o primeiro a criar!
+          </div>
+        )}
+
+        {topics?.map((topic, i) => (
+          <div key={topic.id}>
+            {/* Banner de convidado - aparece depois do 5o topico */}
+            {i === 5 && !user && showGuestBanner && (
+              <div className="flex items-center justify-between bg-gray-700 text-white px-5 py-3 -mx-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-xs">F</div>
+                  <span className="text-sm">Parece que voce e novo aqui. Registre-se de graca, aprenda e contribua!</span>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Link to="/login" className="text-sm px-4 py-1.5 rounded border border-gray-400 hover:bg-gray-600 transition">
+                    Entrar
+                  </Link>
+                  <Link to="/register" className="text-sm px-4 py-1.5 rounded bg-red-500 hover:bg-red-600 transition font-medium">
+                    Inscrever
+                  </Link>
+                  <button onClick={() => setShowGuestBanner(false)} className="text-gray-400 hover:text-white ml-1 transition">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Linha do topico */}
+            <div className="flex items-center py-3 px-4 hover:bg-gray-50 transition group">
+              {/* Avatar */}
+              <div className="mr-3 flex-shrink-0">
+                <Link to={`/user/${topic.user_id}`}>
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition"
+                    style={{ backgroundColor: getAvatarColor(topic.username) }}
+                  >
+                    {topic.username[0].toUpperCase()}
+                  </div>
+                </Link>
+              </div>
+
+              {/* Titulo + tags */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  {topic.pinned === 1 && <span className="text-gray-400 text-sm" title="Fixado">&#x1F4CC;</span>}
+                  {topic.locked === 1 && (
+                    user?.role === 'admin' ? (
+                      <button onClick={() => handleLock(topic.id)} title="Desbloquear topico" className="text-gray-400 hover:text-green-500 transition">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      </button>
+                    ) : (
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" title="Bloqueado">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    )
+                  )}
+                  {/* Admin lock button for unlocked topics */}
+                  {topic.locked !== 1 && user?.role === 'admin' && (
+                    <button onClick={() => handleLock(topic.id)} title="Bloquear topico"
+                      className="text-gray-200 hover:text-red-400 transition opacity-0 group-hover:opacity-100">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  )}
+                  <Link
+                    to={`/topic/${topic.id}`}
+                    className="text-gray-800 font-medium text-sm hover:text-blue-600 transition truncate"
+                  >
+                    {topic.title}
+                  </Link>
+                </div>
+                {topic.tags?.length > 0 && (
+                  <div className="flex gap-1.5 mt-1">
+                    {topic.tags.map(tag => (
+                      <span key={tag} className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-sm font-medium">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Categoria badge */}
+              <div className="w-28 text-center hidden md:flex justify-center">
+                <Link
+                  to={`/category/${topic.category_id}`}
+                  className="text-xs text-white px-2.5 py-1 rounded-sm font-medium truncate"
+                  style={{ backgroundColor: topic.category_color }}
+                >
+                  {topic.category_name}
+                </Link>
+              </div>
+
+              {/* Curtidas */}
+              <div className="w-20 text-center text-sm text-gray-500 hidden sm:block">
+                {topic.like_count || 0}
+              </div>
+
+              {/* Respostas */}
+              <div className="w-20 text-center text-sm font-bold text-gray-800">
+                {topic.reply_count}
+              </div>
+
+              {/* Views */}
+              <div className="w-24 text-center text-sm text-gray-500 hidden sm:block">
+                {formatNumber(topic.views)}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
