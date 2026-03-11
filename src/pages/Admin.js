@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useEffect } from 'react';
@@ -85,12 +85,12 @@ export default function Admin() {
               {users?.map(u => (
                 <tr key={u.id} className={u.banned ? 'bg-red-50' : 'hover:bg-gray-50'}>
                   <td className="px-5 py-3">
-                    <div className="flex items-center gap-2">
+                    <Link to={`/user/${u.id}`} className="flex items-center gap-2 hover:opacity-80 transition">
                       <div className="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-xs">
                         {u.username[0].toUpperCase()}
                       </div>
-                      <span className="font-medium text-gray-800">{u.username}</span>
-                    </div>
+                      <span className="font-medium text-gray-800 hover:text-blue-600 transition">{u.username}</span>
+                    </Link>
                   </td>
                   <td className="px-5 py-3 text-gray-500 hidden sm:table-cell">{u.email}</td>
                   <td className="px-5 py-3">

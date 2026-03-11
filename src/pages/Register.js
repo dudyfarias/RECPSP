@@ -3,8 +3,24 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../api';
 
+const ESTADOS_BR = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+];
+
+const ESTADO_NOMES = {
+  AC: 'Acre', AL: 'Alagoas', AP: 'Amapá', AM: 'Amazonas', BA: 'Bahia',
+  CE: 'Ceará', DF: 'Distrito Federal', ES: 'Espírito Santo', GO: 'Goiás',
+  MA: 'Maranhão', MT: 'Mato Grosso', MS: 'Mato Grosso do Sul', MG: 'Minas Gerais',
+  PA: 'Pará', PB: 'Paraíba', PR: 'Paraná', PE: 'Pernambuco', PI: 'Piauí',
+  RJ: 'Rio de Janeiro', RN: 'Rio Grande do Norte', RS: 'Rio Grande do Sul',
+  RO: 'Rondônia', RR: 'Roraima', SC: 'Santa Catarina', SP: 'São Paulo',
+  SE: 'Sergipe', TO: 'Tocantins',
+};
+
 export default function Register() {
-  const [form, setForm] = useState({ username: '', email: '', password: '' });
+  const [form, setForm] = useState({ username: '', email: '', password: '', organization: '', location: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -23,9 +39,10 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-8">
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 w-full max-w-sm">
         <div className="text-center mb-6">
+          <img src="/logo-recpsp.png" alt="RECPSP" className="h-16 mx-auto mb-3" />
           <h1 className="text-xl font-bold text-gray-800">Inscrever-se</h1>
           <p className="text-gray-400 text-sm mt-1">Crie sua conta no Fórum RECPSP</p>
         </div>
@@ -50,6 +67,23 @@ export default function Register() {
             <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
               placeholder="Mínimo 6 caracteres" required minLength={6} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Órgão / Instituição</label>
+            <input type="text" value={form.organization} onChange={e => setForm(p => ({ ...p, organization: e.target.value }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+              placeholder="Ex: Prefeitura de São Paulo" required />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Estado</label>
+            <select value={form.location} onChange={e => setForm(p => ({ ...p, location: e.target.value }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 bg-white"
+              required>
+              <option value="">Selecione seu estado</option>
+              {ESTADOS_BR.map(uf => (
+                <option key={uf} value={uf}>{uf} - {ESTADO_NOMES[uf]}</option>
+              ))}
+            </select>
           </div>
           <button type="submit" disabled={loading}
             className="w-full bg-red-500 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition disabled:opacity-50">

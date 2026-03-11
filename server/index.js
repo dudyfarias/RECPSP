@@ -211,12 +211,13 @@ function adminOnly(req, res, next) {
 // =================== AUTH ===================
 
 app.post('/api/auth/register', (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, organization, location } = req.body;
   if (!username || !email || !password) return res.status(400).json({ error: 'Preencha todos os campos' });
   if (password.length < 6) return res.status(400).json({ error: 'Senha deve ter pelo menos 6 caracteres' });
   try {
     const hashed = bcrypt.hashSync(password, 10);
-    const result = db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)').run(username, email, hashed);
+    const result = db.prepare('INSERT INTO users (username, email, password, organization, location) VALUES (?, ?, ?, ?, ?)')
+      .run(username, email, hashed, organization || '', location || '');
     const user = db.prepare('SELECT id, username, email, role FROM users WHERE id = ?').get(result.lastInsertRowid);
     const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user });

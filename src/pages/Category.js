@@ -147,10 +147,12 @@ export default function Category() {
         {topics?.map(topic => (
           <div key={topic.id} className="flex items-center py-3 px-4 hover:bg-gray-50 transition group">
             <div className="mr-3 flex-shrink-0">
-              <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                style={{ backgroundColor: getAvatarColor(topic.username) }}>
-                {topic.username[0].toUpperCase()}
-              </div>
+              <Link to={`/user/${topic.user_id}`}>
+                <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition"
+                  style={{ backgroundColor: getAvatarColor(topic.username) }}>
+                  {topic.username[0].toUpperCase()}
+                </div>
+              </Link>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">

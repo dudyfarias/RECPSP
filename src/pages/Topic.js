@@ -423,17 +423,21 @@ export default function Topic() {
         </div>
       </div>
 
-      {/* Admin actions */}
-      {user?.role === 'admin' && (
+      {/* Topic actions: admin (pin/lock/delete) + owner (delete) */}
+      {user && (user.role === 'admin' || user.id === topic.user_id) && (
         <div className="flex gap-2 mb-4">
-          <button onClick={handlePin} className="text-xs border border-gray-200 text-gray-500 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">
-            {topic.pinned ? 'Desafixar' : 'Fixar'}
-          </button>
-          <button onClick={handleLock} className="text-xs border border-gray-200 text-gray-500 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">
-            {topic.locked ? 'Abrir' : 'Fechar'}
-          </button>
+          {user.role === 'admin' && (
+            <>
+              <button onClick={handlePin} className="text-xs border border-gray-200 text-gray-500 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">
+                {topic.pinned ? 'Desafixar' : 'Fixar'}
+              </button>
+              <button onClick={handleLock} className="text-xs border border-gray-200 text-gray-500 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">
+                {topic.locked ? 'Abrir' : 'Fechar'}
+              </button>
+            </>
+          )}
           <button onClick={handleDeleteTopic} className="text-xs bg-red-50 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-100 transition">
-            Deletar
+            Deletar Tópico
           </button>
         </div>
       )}

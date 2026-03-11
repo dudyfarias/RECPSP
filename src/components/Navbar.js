@@ -4,6 +4,22 @@ import { useAuth } from '../context/AuthContext';
 import { useState, useRef, useEffect } from 'react';
 import { apiFetch } from '../api';
 
+const ESTADOS_BR = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+];
+
+const ESTADO_NOMES = {
+  AC: 'Acre', AL: 'Alagoas', AP: 'Amapá', AM: 'Amazonas', BA: 'Bahia',
+  CE: 'Ceará', DF: 'Distrito Federal', ES: 'Espírito Santo', GO: 'Goiás',
+  MA: 'Maranhão', MT: 'Mato Grosso', MS: 'Mato Grosso do Sul', MG: 'Minas Gerais',
+  PA: 'Pará', PB: 'Paraíba', PR: 'Paraná', PE: 'Pernambuco', PI: 'Piauí',
+  RJ: 'Rio de Janeiro', RN: 'Rio Grande do Norte', RS: 'Rio Grande do Sul',
+  RO: 'Rondônia', RR: 'Roraima', SC: 'Santa Catarina', SP: 'São Paulo',
+  SE: 'Sergipe', TO: 'Tocantins',
+};
+
 function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
   const [form, setForm] = useState({
     username: user.username || '',
@@ -124,13 +140,17 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Localização</label>
-            <input
-              type="text" value={form.location}
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Estado</label>
+            <select
+              value={form.location}
               onChange={e => setForm(p => ({ ...p, location: e.target.value }))}
-              placeholder="São Paulo"
-              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-red-400 placeholder-gray-400"
-            />
+              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-red-400"
+            >
+              <option value="">Selecione seu estado</option>
+              {ESTADOS_BR.map(uf => (
+                <option key={uf} value={uf}>{uf} - {ESTADO_NOMES[uf]}</option>
+              ))}
+            </select>
           </div>
 
           {/* Organization */}
