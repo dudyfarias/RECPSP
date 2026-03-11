@@ -681,7 +681,7 @@ const buildPath = path.join(__dirname, '..', 'build');
 app.use(express.static(buildPath));
 
 // Qualquer rota que nao seja /api, servir o index.html do React (SPA)
-app.get('*', (req, res) => {
+app.get('{*path}', (req, res) => {
   res.sendFile(path.join(buildPath, 'index.html'));
 });
 
