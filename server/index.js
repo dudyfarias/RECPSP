@@ -182,7 +182,7 @@ if (!adminExists) {
     db.prepare('INSERT INTO categories (name, description, color) VALUES (?, ?, ?)').run(name, desc, color);
   }
 
-  const tags = ['Planejamento', 'Gestao Publica', 'Inexigibilidade', 'Dispensa', 'Compras Sustentaveis', 'ODS', 'Pregao', 'Licitacao', 'Boas Praticas', 'Agentes Publicos'];
+  const tags = ['Planejamento', 'Gestão Pública', 'Inexigibilidade', 'Dispensa', 'Compras Sustentáveis', 'ODS', 'Pregão', 'Licitação', 'Boas Práticas', 'Agentes Públicos'];
   for (const tag of tags) {
     db.prepare('INSERT OR IGNORE INTO tags (name) VALUES (?)').run(tag);
   }
@@ -259,12 +259,12 @@ if (!adminExists) {
     // Tags aleatorias por topico
     const topicTags = [];
     if (t.cat === 1) topicTags.push('Planejamento');
-    if (t.cat === 7 || t.type === 'question') topicTags.push('Licitacao');
+    if (t.cat === 7 || t.type === 'question') topicTags.push('Licitação');
     if (t.cat === 3) topicTags.push('Dispensa');
-    if (t.cat === 4) topicTags.push('Compras Sustentaveis');
-    if (t.cat === 10) topicTags.push('Agentes Publicos');
-    if (t.cat === 8) topicTags.push('Boas Praticas');
-    if (topicTags.length === 0) topicTags.push('Gestao Publica');
+    if (t.cat === 4) topicTags.push('Compras Sustentáveis');
+    if (t.cat === 10) topicTags.push('Agentes Públicos');
+    if (t.cat === 8) topicTags.push('Boas Práticas');
+    if (topicTags.length === 0) topicTags.push('Gestão Pública');
     for (const tagName of topicTags) {
       const tag = db.prepare('SELECT id FROM tags WHERE name = ?').get(tagName);
       if (tag) db.prepare('INSERT OR IGNORE INTO topic_tags (topic_id, tag_id) VALUES (?, ?)').run(topicRes.lastInsertRowid, tag.id);
@@ -372,6 +372,19 @@ const catFixes = [
 ];
 for (const [id, name, desc] of catFixes) {
   try { db.prepare('UPDATE categories SET name = ?, description = ? WHERE id = ?').run(name, desc, id); } catch {}
+}
+
+// =================== CORRIGIR ACENTOS NAS TAGS (banco existente) ===================
+const tagFixes = [
+  ['Gestao Publica', 'Gestão Pública'],
+  ['Compras Sustentaveis', 'Compras Sustentáveis'],
+  ['Pregao', 'Pregão'],
+  ['Licitacao', 'Licitação'],
+  ['Boas Praticas', 'Boas Práticas'],
+  ['Agentes Publicos', 'Agentes Públicos'],
+];
+for (const [oldName, newName] of tagFixes) {
+  try { db.prepare('UPDATE tags SET name = ? WHERE name = ?').run(newName, oldName); } catch {}
 }
 
 // =================== MIDDLEWARES ===================
