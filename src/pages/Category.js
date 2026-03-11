@@ -35,8 +35,8 @@ export default function Category() {
 
   const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: () => apiFetch('/categories') });
   const { data: topics, isLoading, refetch } = useQuery({
-    queryKey: ['topics', id],
-    queryFn: () => apiFetch(`/categories/${id}/topics`),
+    queryKey: ['topics', id, !!token],
+    queryFn: () => apiFetch(`/categories/${id}/topics`, {}, token),
   });
   const { data: allTags } = useQuery({ queryKey: ['tags'], queryFn: () => apiFetch('/tags') });
 
@@ -177,9 +177,19 @@ export default function Category() {
                     </svg>
                   </button>
                 )}
-                <Link to={`/topic/${topic.id}`} className="text-gray-800 font-medium text-sm hover:text-blue-600 transition truncate">
+                <Link to={`/topic/${topic.id}`} className={`font-medium text-sm hover:text-blue-600 transition truncate ${
+                  topic.status === 'pending' ? 'text-gray-500' : 'text-gray-800'
+                }`}>
                   {topic.title}
                 </Link>
+                {topic.status === 'pending' && (
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full flex-shrink-0">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Em análise
+                  </span>
+                )}
               </div>
               {topic.tags?.length > 0 && (
                 <div className="flex gap-1.5 mt-1">

@@ -95,6 +95,7 @@ export default function NewTopic() {
   const [tags, setTags] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState(false);
 
   // Poll state
   const [pollOptions, setPollOptions] = useState(['', '']);
@@ -222,6 +223,14 @@ export default function NewTopic() {
         method: 'POST',
         body: JSON.stringify(body),
       }, token);
+
+      // Se o topico ficou pendente (imagem/video de usuario comum), mostrar mensagem
+      if (result.status === 'pending') {
+        setPendingMessage(true);
+        setTimeout(() => navigate('/forum'), 5000);
+        return;
+      }
+
       navigate(`/topic/${result.id}`);
     } catch (err) {
       setError(err.message);
@@ -250,6 +259,29 @@ export default function NewTopic() {
   }
 
   const videoEmbed = getVideoEmbed(videoUrl);
+
+  // Mensagem de tópico pendente
+  if (pendingMessage) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-16 text-center">
+        <div className="bg-white rounded-lg border border-yellow-200 p-8">
+          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-bold text-gray-800 mb-2">Tópico enviado para análise</h2>
+          <p className="text-sm text-gray-500 leading-relaxed mb-4">
+            Seu tópico foi enviado e está em análise. Ele será publicado após aprovação de um moderador.
+          </p>
+          <p className="text-xs text-gray-400">Redirecionando para o fórum em alguns segundos...</p>
+          <Link to="/forum" className="inline-block mt-4 text-sm font-semibold text-red-500 hover:text-red-600 transition">
+            Voltar ao fórum →
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">

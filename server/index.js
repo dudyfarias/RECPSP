@@ -159,6 +159,9 @@ try { db.exec('ALTER TABLE users ADD COLUMN bio TEXT DEFAULT ""'); } catch {}
 try { db.exec('ALTER TABLE topics ADD COLUMN image_url TEXT DEFAULT ""'); } catch {}
 try { db.exec('ALTER TABLE topics ADD COLUMN video_url TEXT DEFAULT ""'); } catch {}
 
+// Adicionar coluna status para moderacao de topicos com imagem/video
+try { db.exec('ALTER TABLE topics ADD COLUMN status TEXT DEFAULT "approved"'); } catch {}
+
 // =================== SEED ===================
 const adminExists = db.prepare('SELECT id FROM users WHERE role = ?').get('admin');
 if (!adminExists) {
@@ -623,12 +626,28 @@ app.get('/api/topics', optionalAuth, (req, res) => {
   if (sort === 'top') orderBy = 'ORDER BY like_count DESC';
   if (sort === 'replies') orderBy = 'ORDER BY reply_count DESC';
 
-  let where = '';
+  // Filtro de moderacao: admin/mod veem todos, usuario comum ve aprovados + seus proprios pendentes
+  const conditions = [];
   const params = [];
+
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'moderator')) {
+    // Admin/mod veem todos os topicos (exceto rejeitados)
+    conditions.push("t.status != 'rejected'");
+  } else if (req.user) {
+    // Usuario logado: ve aprovados + seus proprios pendentes
+    conditions.push("(t.status = 'approved' OR (t.status = 'pending' AND t.user_id = ?))");
+    params.push(req.user.id);
+  } else {
+    // Visitante: ve apenas aprovados
+    conditions.push("t.status = 'approved'");
+  }
+
   if (category_id) {
-    where = 'WHERE t.category_id = ?';
+    conditions.push('t.category_id = ?');
     params.push(category_id);
   }
+
+  const where = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
 
   const topics = db.prepare(`
     SELECT t.*, u.username,
@@ -652,6 +671,21 @@ app.get('/api/topics', optionalAuth, (req, res) => {
 });
 
 app.get('/api/categories/:id/topics', optionalAuth, (req, res) => {
+  // Filtro de moderacao igual ao /api/topics
+  const conditions = ['t.category_id = ?'];
+  const params = [req.params.id];
+
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'moderator')) {
+    conditions.push("t.status != 'rejected'");
+  } else if (req.user) {
+    conditions.push("(t.status = 'approved' OR (t.status = 'pending' AND t.user_id = ?))");
+    params.push(req.user.id);
+  } else {
+    conditions.push("t.status = 'approved'");
+  }
+
+  const where = 'WHERE ' + conditions.join(' AND ');
+
   const topics = db.prepare(`
     SELECT t.*, u.username,
       c.name as category_name, c.color as category_color,
@@ -661,9 +695,9 @@ app.get('/api/categories/:id/topics', optionalAuth, (req, res) => {
     FROM topics t
     JOIN users u ON t.user_id = u.id
     JOIN categories c ON t.category_id = c.id
-    WHERE t.category_id = ?
+    ${where}
     ORDER BY t.pinned DESC, last_activity DESC
-  `).all(req.params.id);
+  `).all(...params);
 
   const tagStmt = db.prepare('SELECT tg.name FROM topic_tags tt JOIN tags tg ON tt.tag_id = tg.id WHERE tt.topic_id = ?');
   for (const topic of topics) {
@@ -685,8 +719,13 @@ app.post('/api/topics', auth, (req, res) => {
     return res.status(400).json({ error: 'Votacao precisa de pelo menos 2 alternativas' });
   }
 
-  const topicResult = db.prepare('INSERT INTO topics (title, category_id, user_id, type, image_url, video_url) VALUES (?, ?, ?, ?, ?, ?)')
-    .run(title, category_id, req.user.id, type || 'discussion', image_url || '', video_url || '');
+  // Determinar status: topicos com imagem ou video de usuarios comuns ficam pendentes
+  const hasMedia = (image_url && image_url.trim()) || (video_url && video_url.trim());
+  const isAdminOrMod = req.user.role === 'admin' || req.user.role === 'moderator';
+  const topicStatus = (hasMedia && !isAdminOrMod) ? 'pending' : 'approved';
+
+  const topicResult = db.prepare('INSERT INTO topics (title, category_id, user_id, type, image_url, video_url, status) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .run(title, category_id, req.user.id, type || 'discussion', image_url || '', video_url || '', topicStatus);
   db.prepare('INSERT INTO posts (content, topic_id, user_id) VALUES (?, ?, ?)').run(content, topicResult.lastInsertRowid, req.user.id);
 
   // Criar opcoes de votacao
@@ -709,7 +748,18 @@ app.post('/api/topics', auth, (req, res) => {
     }
   }
 
-  res.json(db.prepare('SELECT * FROM topics WHERE id = ?').get(topicResult.lastInsertRowid));
+  // Se topico ficou pendente, notificar todos admin e moderadores
+  if (topicStatus === 'pending') {
+    const adminsAndMods = db.prepare("SELECT id FROM users WHERE role IN ('admin', 'moderator') AND id != ?").all(req.user.id);
+    const authorName = db.prepare('SELECT username FROM users WHERE id = ?').get(req.user.id)?.username || 'Usuário';
+    for (const mod of adminsAndMods) {
+      db.prepare('INSERT INTO notifications (user_id, type, content, reference_id) VALUES (?, ?, ?, ?)')
+        .run(mod.id, 'moderation', `Novo tópico aguardando aprovação: "${title}" por ${authorName}`, topicResult.lastInsertRowid);
+    }
+  }
+
+  const createdTopic = db.prepare('SELECT * FROM topics WHERE id = ?').get(topicResult.lastInsertRowid);
+  res.json(createdTopic);
 });
 
 app.put('/api/topics/:id/pin', auth, adminOnly, (req, res) => {
@@ -799,6 +849,22 @@ app.get('/api/topics/:id', optionalAuth, (req, res) => {
     WHERE t.id = ?
   `).get(req.params.id);
   if (!topic) return res.status(404).json({ error: 'Topico nao encontrado' });
+
+  // Bloquear acesso a topico pendente se nao for autor, admin ou moderador
+  if (topic.status === 'pending') {
+    const isAuthor = req.user && req.user.id === topic.user_id;
+    const isAdminOrMod = req.user && (req.user.role === 'admin' || req.user.role === 'moderator');
+    if (!isAuthor && !isAdminOrMod) {
+      return res.status(403).json({ error: 'Este tópico está em análise e não está disponível' });
+    }
+  }
+  if (topic.status === 'rejected') {
+    const isAuthor = req.user && req.user.id === topic.user_id;
+    const isAdminOrMod = req.user && (req.user.role === 'admin' || req.user.role === 'moderator');
+    if (!isAuthor && !isAdminOrMod) {
+      return res.status(404).json({ error: 'Topico nao encontrado' });
+    }
+  }
 
   const posts = db.prepare(`
     SELECT p.*, u.username, u.role, u.created_at as user_since,
@@ -991,6 +1057,65 @@ app.put('/api/admin/users/:id/role', auth, adminOnly, (req, res) => {
   if (target.id === req.user.id) return res.status(400).json({ error: 'Nao e possivel alterar seu proprio papel' });
   db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, req.params.id);
   res.json({ ok: true, role });
+});
+
+// =================== MODERACAO DE TOPICOS ===================
+
+// Listar topicos pendentes (admin e moderador)
+app.get('/api/admin/topics/pending', auth, (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'moderator') {
+    return res.status(403).json({ error: 'Acesso negado' });
+  }
+  const topics = db.prepare(`
+    SELECT t.*, u.username,
+      c.name as category_name, c.color as category_color,
+      (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) - 1 as reply_count,
+      (SELECT p.content FROM posts p WHERE p.topic_id = t.id ORDER BY p.created_at ASC LIMIT 1) as first_post_content
+    FROM topics t
+    JOIN users u ON t.user_id = u.id
+    JOIN categories c ON t.category_id = c.id
+    WHERE t.status = 'pending'
+    ORDER BY t.created_at DESC
+  `).all();
+  res.json(topics);
+});
+
+// Aprovar topico
+app.put('/api/admin/topics/:id/approve', auth, (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'moderator') {
+    return res.status(403).json({ error: 'Acesso negado' });
+  }
+  const topic = db.prepare('SELECT * FROM topics WHERE id = ?').get(req.params.id);
+  if (!topic) return res.status(404).json({ error: 'Topico nao encontrado' });
+  if (topic.status !== 'pending') return res.status(400).json({ error: 'Topico nao esta pendente' });
+
+  db.prepare("UPDATE topics SET status = 'approved' WHERE id = ?").run(req.params.id);
+
+  // Notificar o autor que o topico foi aprovado
+  const modName = db.prepare('SELECT username FROM users WHERE id = ?').get(req.user.id)?.username || 'Moderador';
+  db.prepare('INSERT INTO notifications (user_id, type, content, reference_id) VALUES (?, ?, ?, ?)')
+    .run(topic.user_id, 'moderation', `Seu tópico "${topic.title}" foi aprovado por ${modName} e já está visível no fórum!`, topic.id);
+
+  res.json({ ok: true });
+});
+
+// Rejeitar topico
+app.put('/api/admin/topics/:id/reject', auth, (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'moderator') {
+    return res.status(403).json({ error: 'Acesso negado' });
+  }
+  const topic = db.prepare('SELECT * FROM topics WHERE id = ?').get(req.params.id);
+  if (!topic) return res.status(404).json({ error: 'Topico nao encontrado' });
+  if (topic.status !== 'pending') return res.status(400).json({ error: 'Topico nao esta pendente' });
+
+  db.prepare("UPDATE topics SET status = 'rejected' WHERE id = ?").run(req.params.id);
+
+  // Notificar o autor que o topico foi rejeitado
+  const modName = db.prepare('SELECT username FROM users WHERE id = ?').get(req.user.id)?.username || 'Moderador';
+  db.prepare('INSERT INTO notifications (user_id, type, content, reference_id) VALUES (?, ?, ?, ?)')
+    .run(topic.user_id, 'moderation', `Seu tópico "${topic.title}" não foi aprovado por ${modName}. O conteúdo não atende às diretrizes do fórum.`, topic.id);
+
+  res.json({ ok: true });
 });
 
 // =================== SERVIR REACT BUILD ===================

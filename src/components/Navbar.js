@@ -373,12 +373,16 @@ export default function Navbar() {
           <div className="flex items-center gap-3 flex-shrink-0">
             {user ? (
               <>
-                {user.role === 'admin' && (
+                {(user.role === 'admin' || user.role === 'moderator') && (
                   <Link
                     to="/admin"
-                    className="text-xs font-bold bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-full hover:bg-yellow-200 transition hidden sm:block"
+                    className={`text-xs font-bold px-2.5 py-1 rounded-full transition hidden sm:block ${
+                      user.role === 'admin'
+                        ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                    }`}
                   >
-                    Admin
+                    {user.role === 'admin' ? 'Admin' : 'Moderação'}
                   </Link>
                 )}
 

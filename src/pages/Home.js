@@ -39,8 +39,8 @@ export default function Home() {
   const [showGuestBanner, setShowGuestBanner] = useState(true);
 
   const { data: topics, isLoading, refetch } = useQuery({
-    queryKey: ['topics', sort],
-    queryFn: () => apiFetch(`/topics${sort ? `?sort=${sort}` : ''}`),
+    queryKey: ['topics', sort, !!token],
+    queryFn: () => apiFetch(`/topics${sort ? `?sort=${sort}` : ''}`, {}, token),
   });
 
   async function handleLock(topicId) {
@@ -102,7 +102,9 @@ export default function Home() {
             )}
 
             {/* Linha do tópico */}
-            <div className="flex items-center py-3 px-4 hover:bg-gray-50 transition group">
+            <div className={`flex items-center py-3 px-4 hover:bg-gray-50 transition group ${
+              topic.status === 'pending' ? 'opacity-70 bg-yellow-50/50' : ''
+            }`}>
               {/* Avatar */}
               <div className="mr-3 flex-shrink-0">
                 <Link to={`/user/${topic.user_id}`}>
@@ -143,10 +145,20 @@ export default function Home() {
                   )}
                   <Link
                     to={`/topic/${topic.id}`}
-                    className="text-gray-800 font-medium text-sm hover:text-blue-600 transition truncate"
+                    className={`font-medium text-sm hover:text-blue-600 transition truncate ${
+                      topic.status === 'pending' ? 'text-gray-500' : 'text-gray-800'
+                    }`}
                   >
                     {topic.title}
                   </Link>
+                  {topic.status === 'pending' && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full flex-shrink-0">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Em análise
+                    </span>
+                  )}
                 </div>
                 {topic.tags?.length > 0 && (
                   <div className="flex gap-1.5 mt-1">

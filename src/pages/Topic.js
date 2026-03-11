@@ -406,6 +406,19 @@ export default function Topic() {
         <span className="text-gray-600 font-medium">{topic.title}</span>
       </div>
 
+      {/* Banner de moderação */}
+      {topic.status === 'pending' && (
+        <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 mb-4">
+          <svg className="w-5 h-5 text-yellow-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p className="text-sm font-semibold text-yellow-700">Tópico em análise</p>
+            <p className="text-xs text-yellow-600">Este tópico está aguardando aprovação de um moderador antes de ficar visível para todos.</p>
+          </div>
+        </div>
+      )}
+
       {/* Header - user + title */}
       <div className="flex items-start gap-3 mb-4">
         <Link to={`/user/${topic.user_id}`} className="flex-shrink-0">
