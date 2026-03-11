@@ -160,9 +160,11 @@ function PostCard({ post, topic, isFirst, onDelete, onEdit, onLike, onBestAnswer
                   <ThumbUpIcon className="w-4 h-4" />
                   <span>{post.like_count || 0}</span>
                 </button>
-                <button className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition">
-                  <ThumbDownIcon className="w-4 h-4" />
-                </button>
+                {(currentUser?.role === 'admin' || currentUser?.role === 'moderator') && (
+                  <button className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition">
+                    <ThumbDownIcon className="w-4 h-4" />
+                  </button>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 {canModify && !topic.locked && (
