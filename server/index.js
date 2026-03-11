@@ -88,6 +88,16 @@ db.exec(`
     FOREIGN KEY (post_id) REFERENCES posts(id)
   );
 
+  CREATE TABLE IF NOT EXISTS post_dislikes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    post_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, post_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (post_id) REFERENCES posts(id)
+  );
+
   CREATE TABLE IF NOT EXISTS messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     sender_id INTEGER NOT NULL,
@@ -778,16 +788,19 @@ app.get('/api/topics/:id', optionalAuth, (req, res) => {
 
   const posts = db.prepare(`
     SELECT p.*, u.username, u.role, u.created_at as user_since,
-      (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count
+      (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
+      (SELECT COUNT(*) FROM post_dislikes WHERE post_id = p.id) as dislike_count
     FROM posts p JOIN users u ON p.user_id = u.id
     WHERE p.topic_id = ? ORDER BY p.created_at ASC
   `).all(req.params.id);
 
-  // Check which posts the user liked
+  // Check which posts the user liked/disliked
   if (req.user) {
     const likedPosts = db.prepare('SELECT post_id FROM post_likes WHERE user_id = ? AND post_id IN (SELECT id FROM posts WHERE topic_id = ?)').all(req.user.id, req.params.id);
     const likedSet = new Set(likedPosts.map(l => l.post_id));
-    for (const post of posts) { post.user_liked = likedSet.has(post.id); }
+    const dislikedPosts = db.prepare('SELECT post_id FROM post_dislikes WHERE user_id = ? AND post_id IN (SELECT id FROM posts WHERE topic_id = ?)').all(req.user.id, req.params.id);
+    const dislikedSet = new Set(dislikedPosts.map(l => l.post_id));
+    for (const post of posts) { post.user_liked = likedSet.has(post.id); post.user_disliked = dislikedSet.has(post.id); }
   }
 
   // Frequent users
@@ -856,6 +869,8 @@ app.delete('/api/posts/:id', auth, (req, res) => {
 // =================== POST LIKES ===================
 
 app.post('/api/posts/:id/like', auth, (req, res) => {
+  // Remove dislike se existir
+  db.prepare('DELETE FROM post_dislikes WHERE user_id = ? AND post_id = ?').run(req.user.id, req.params.id);
   try {
     db.prepare('INSERT INTO post_likes (user_id, post_id) VALUES (?, ?)').run(req.user.id, req.params.id);
     const count = db.prepare('SELECT COUNT(*) as c FROM post_likes WHERE post_id = ?').get(req.params.id);
@@ -864,6 +879,20 @@ app.post('/api/posts/:id/like', auth, (req, res) => {
     db.prepare('DELETE FROM post_likes WHERE user_id = ? AND post_id = ?').run(req.user.id, req.params.id);
     const count = db.prepare('SELECT COUNT(*) as c FROM post_likes WHERE post_id = ?').get(req.params.id);
     res.json({ liked: false, count: count.c });
+  }
+});
+
+app.post('/api/posts/:id/dislike', auth, (req, res) => {
+  // Remove like se existir
+  db.prepare('DELETE FROM post_likes WHERE user_id = ? AND post_id = ?').run(req.user.id, req.params.id);
+  try {
+    db.prepare('INSERT INTO post_dislikes (user_id, post_id) VALUES (?, ?)').run(req.user.id, req.params.id);
+    const count = db.prepare('SELECT COUNT(*) as c FROM post_dislikes WHERE post_id = ?').get(req.params.id);
+    res.json({ disliked: true, count: count.c });
+  } catch {
+    db.prepare('DELETE FROM post_dislikes WHERE user_id = ? AND post_id = ?').run(req.user.id, req.params.id);
+    const count = db.prepare('SELECT COUNT(*) as c FROM post_dislikes WHERE post_id = ?').get(req.params.id);
+    res.json({ disliked: false, count: count.c });
   }
 });
 

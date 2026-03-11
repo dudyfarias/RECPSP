@@ -93,7 +93,7 @@ function ThumbDownIcon({ className }) {
   );
 }
 
-function PostCard({ post, topic, isFirst, onDelete, onEdit, onLike, onBestAnswer, currentUser }) {
+function PostCard({ post, topic, isFirst, onDelete, onEdit, onLike, onDislike, onBestAnswer, currentUser }) {
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(post.content);
   const canModify = currentUser && (currentUser.id === post.user_id || currentUser.role === 'admin');
@@ -160,11 +160,13 @@ function PostCard({ post, topic, isFirst, onDelete, onEdit, onLike, onBestAnswer
                   <ThumbUpIcon className="w-4 h-4" />
                   <span>{post.like_count || 0}</span>
                 </button>
-                {(currentUser?.role === 'admin' || currentUser?.role === 'moderator') && (
-                  <button className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition">
-                    <ThumbDownIcon className="w-4 h-4" />
-                  </button>
-                )}
+                <button onClick={() => onDislike(post.id)}
+                  className={`flex items-center gap-1 text-xs transition ${post.user_disliked ? 'text-red-500' : 'text-gray-400 hover:text-gray-600'}`}>
+                  <ThumbDownIcon className="w-4 h-4" />
+                  {(currentUser?.role === 'admin' || currentUser?.role === 'moderator') && (
+                    <span>{post.dislike_count || 0}</span>
+                  )}
+                </button>
               </div>
               <div className="flex items-center gap-3">
                 {canModify && !topic.locked && (
@@ -347,6 +349,12 @@ export default function Topic() {
     catch (err) { alert(err.message); }
   }
 
+  async function handleDislikePost(postId) {
+    if (!user) return;
+    try { await apiFetch(`/posts/${postId}/dislike`, { method: 'POST' }, token); refetch(); }
+    catch (err) { alert(err.message); }
+  }
+
   async function handleBestAnswer(postId) {
     try { await apiFetch(`/posts/${postId}/best-answer`, { method: 'PUT' }, token); refetch(); }
     catch (err) { alert(err.message); }
@@ -444,7 +452,7 @@ export default function Topic() {
       {firstPost && (
         <div className="bg-white rounded-lg border border-gray-200 mb-4">
           <PostCard post={firstPost} topic={topic} isFirst={true} onDelete={handleDeletePost}
-            onEdit={handleEditPost} onLike={handleLikePost} onBestAnswer={handleBestAnswer} currentUser={user} />
+            onEdit={handleEditPost} onLike={handleLikePost} onDislike={handleDislikePost} onBestAnswer={handleBestAnswer} currentUser={user} />
         </div>
       )}
 
@@ -539,7 +547,7 @@ export default function Topic() {
         <div className="bg-white rounded-lg border border-gray-200 mb-4">
           {sortedReplies.map(post => (
             <PostCard key={post.id} post={post} topic={topic} isFirst={false} onDelete={handleDeletePost}
-              onEdit={handleEditPost} onLike={handleLikePost} onBestAnswer={handleBestAnswer} currentUser={user} />
+              onEdit={handleEditPost} onLike={handleLikePost} onDislike={handleDislikePost} onBestAnswer={handleBestAnswer} currentUser={user} />
           ))}
         </div>
       )}
