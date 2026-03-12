@@ -625,6 +625,7 @@ app.get('/api/topics', optionalAuth, (req, res) => {
   if (sort === 'new') orderBy = 'ORDER BY t.pinned DESC, t.created_at DESC';
   if (sort === 'top') orderBy = 'ORDER BY like_count DESC';
   if (sort === 'replies') orderBy = 'ORDER BY reply_count DESC';
+  if (sort === 'views') orderBy = 'ORDER BY t.views DESC';
 
   // Filtro de moderacao: admin/mod veem todos, usuario comum ve aprovados + seus proprios pendentes
   const conditions = [];
@@ -671,6 +672,14 @@ app.get('/api/topics', optionalAuth, (req, res) => {
 });
 
 app.get('/api/categories/:id/topics', optionalAuth, (req, res) => {
+  const { sort } = req.query;
+
+  let orderBy = 'ORDER BY t.pinned DESC, last_activity DESC';
+  if (sort === 'new') orderBy = 'ORDER BY t.pinned DESC, t.created_at DESC';
+  if (sort === 'top') orderBy = 'ORDER BY like_count DESC';
+  if (sort === 'replies') orderBy = 'ORDER BY reply_count DESC';
+  if (sort === 'views') orderBy = 'ORDER BY t.views DESC';
+
   // Filtro de moderacao igual ao /api/topics
   const conditions = ['t.category_id = ?'];
   const params = [req.params.id];
@@ -696,7 +705,7 @@ app.get('/api/categories/:id/topics', optionalAuth, (req, res) => {
     JOIN users u ON t.user_id = u.id
     JOIN categories c ON t.category_id = c.id
     ${where}
-    ORDER BY t.pinned DESC, last_activity DESC
+    ${orderBy}
   `).all(...params);
 
   const tagStmt = db.prepare('SELECT tg.name FROM topic_tags tt JOIN tags tg ON tt.tag_id = tg.id WHERE tt.topic_id = ?');

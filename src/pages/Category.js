@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
@@ -26,17 +26,27 @@ function formatNumber(n) {
   return String(n);
 }
 
+const SORT_OPTIONS = [
+  { key: '', label: 'Recentes' },
+  { key: 'new', label: 'Novos' },
+  { key: 'top', label: 'Mais Curtidos' },
+  { key: 'views', label: 'Mais Visualizados' },
+  { key: 'replies', label: 'Mais Respondidos' },
+];
+
 export default function Category() {
   const { id } = useParams();
   const { user, token } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sort = searchParams.get('sort') || '';
   const [showNewTopic, setShowNewTopic] = useState(false);
   const [form, setForm] = useState({ title: '', content: '', tags: '' });
   const [error, setError] = useState('');
 
   const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: () => apiFetch('/categories') });
   const { data: topics, isLoading, refetch } = useQuery({
-    queryKey: ['topics', id, !!token],
-    queryFn: () => apiFetch(`/categories/${id}/topics`, {}, token),
+    queryKey: ['topics', id, sort, !!token],
+    queryFn: () => apiFetch(`/categories/${id}/topics${sort ? `?sort=${sort}` : ''}`, {}, token),
   });
   const { data: allTags } = useQuery({ queryKey: ['tags'], queryFn: () => apiFetch('/tags') });
 
@@ -131,6 +141,28 @@ export default function Category() {
           </div>
         </form>
       )}
+
+      {/* Filtros de ordenação */}
+      <div className="flex items-center gap-1.5 flex-wrap mb-4">
+        {SORT_OPTIONS.map(opt => (
+          <button
+            key={opt.key}
+            onClick={() => {
+              const params = new URLSearchParams(searchParams);
+              if (opt.key) params.set('sort', opt.key);
+              else params.delete('sort');
+              setSearchParams(params);
+            }}
+            className={`text-xs font-medium px-3 py-1.5 rounded-full transition ${
+              sort === opt.key
+                ? 'bg-red-500 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
 
       {/* Table header */}
       <div className="flex items-center py-2.5 px-4 text-xs text-gray-500 font-medium uppercase tracking-wider border-b border-gray-200 bg-gray-50">

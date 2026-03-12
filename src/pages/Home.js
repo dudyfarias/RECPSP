@@ -32,16 +32,50 @@ function formatNumber(n) {
   return String(n);
 }
 
+const SORT_OPTIONS = [
+  { key: '', label: 'Recentes' },
+  { key: 'new', label: 'Novos' },
+  { key: 'top', label: 'Mais Curtidos' },
+  { key: 'views', label: 'Mais Visualizados' },
+  { key: 'replies', label: 'Mais Respondidos' },
+];
+
 export default function Home() {
   const { user, token } = useAuth();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const sort = searchParams.get('sort') || '';
+  const categoryFilter = searchParams.get('category') || '';
   const [showGuestBanner, setShowGuestBanner] = useState(true);
 
-  const { data: topics, isLoading, refetch } = useQuery({
-    queryKey: ['topics', sort, !!token],
-    queryFn: () => apiFetch(`/topics${sort ? `?sort=${sort}` : ''}`, {}, token),
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => apiFetch('/categories'),
   });
+
+  const { data: topics, isLoading, refetch } = useQuery({
+    queryKey: ['topics', sort, categoryFilter, !!token],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (sort) params.set('sort', sort);
+      if (categoryFilter) params.set('category_id', categoryFilter);
+      const qs = params.toString();
+      return apiFetch(`/topics${qs ? `?${qs}` : ''}`, {}, token);
+    },
+  });
+
+  function handleSort(newSort) {
+    const params = new URLSearchParams(searchParams);
+    if (newSort) params.set('sort', newSort);
+    else params.delete('sort');
+    setSearchParams(params);
+  }
+
+  function handleCategoryChange(catId) {
+    const params = new URLSearchParams(searchParams);
+    if (catId) params.set('category', catId);
+    else params.delete('category');
+    setSearchParams(params);
+  }
 
   async function handleLock(topicId) {
     try {
@@ -60,6 +94,35 @@ export default function Home() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-0">
+      {/* Barra de filtros */}
+      <div className="flex items-center justify-between py-3 px-4 border-b border-gray-200 bg-white flex-wrap gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {SORT_OPTIONS.map(opt => (
+            <button
+              key={opt.key}
+              onClick={() => handleSort(opt.key)}
+              className={`text-xs font-medium px-3 py-1.5 rounded-full transition ${
+                sort === opt.key
+                  ? 'bg-red-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <select
+          value={categoryFilter}
+          onChange={e => handleCategoryChange(e.target.value)}
+          className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-red-300"
+        >
+          <option value="">Todas as Categorias</option>
+          {categories?.map(cat => (
+            <option key={cat.id} value={cat.id}>{cat.name}</option>
+          ))}
+        </select>
+      </div>
+
       {/* Header da tabela */}
       <div className="flex items-center py-2.5 px-4 text-xs text-gray-500 font-medium uppercase tracking-wider border-b border-gray-200 bg-gray-50">
         <div className="flex-1">Tópico</div>
