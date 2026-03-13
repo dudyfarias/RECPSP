@@ -236,47 +236,47 @@ if (!adminExists) {
   }
 
   const testTopics = [
-    // Discussoes
-    { title: 'Impacto do PCA na eficiencia das contratacoes', cat: 1, user: 2, type: 'discussion',
-      content: 'Gostaria de abrir uma discussao sobre como o Plano de Contratacoes Anual tem impactado a eficiencia dos processos nas suas instituicoes. Na minha experiencia, a implementacao do PCA trouxe mais previsibilidade, mas tambem alguns desafios operacionais. Como tem sido na pratica de voces?' },
-    { title: 'Fiscalizacao de contratos de obras: melhores praticas', cat: 2, user: 3, type: 'discussion',
-      content: 'Venho compartilhar algumas praticas que temos adotado na fiscalizacao de contratos de obras publicas. A medicao por etapas com verificacao fotografica tem sido fundamental para garantir a qualidade. Quais ferramentas e metodologias voces utilizam?' },
-    { title: 'Criterios ESG em licitacoes: como implementar?', cat: 4, user: 4, type: 'discussion',
-      content: 'Com a crescente demanda por sustentabilidade nas compras publicas, como voces tem incorporado criterios ESG nos editais? Temos conseguido bons resultados com exigencia de certificacoes ambientais, mas ainda ha resistencia de alguns fornecedores.' },
-    { title: 'Papel do agente de contratacao vs pregoeiro', cat: 10, user: 5, type: 'discussion',
-      content: 'Com a Nova Lei de Licitacoes, o papel do agente de contratacao ficou mais amplo que o do antigo pregoeiro. Na pratica, como tem sido essa transicao nos orgaos de voces? Quais as principais dificuldades encontradas?' },
-    { title: 'Portal PNCP: experiencias e dificuldades', cat: 8, user: 6, type: 'discussion',
-      content: 'O Portal Nacional de Contratacoes Publicas ja e uma realidade. Gostaria de saber como tem sido a experiencia de voces com a plataforma. Encontraram dificuldades na integracao com os sistemas internos? Quais melhorias sugerem?' },
+    // Discussões
+    { title: 'Impacto do PCA na eficiência das contratações', cat: 1, user: 2, type: 'discussion',
+      content: 'Gostaria de abrir uma discussão sobre como o Plano de Contratações Anual tem impactado a eficiência dos processos nas suas instituições. Na minha experiência, a implementação do PCA trouxe mais previsibilidade, mas também alguns desafios operacionais. Como tem sido na prática de vocês?' },
+    { title: 'Fiscalização de contratos de obras: melhores práticas', cat: 2, user: 3, type: 'discussion',
+      content: 'Venho compartilhar algumas práticas que temos adotado na fiscalização de contratos de obras públicas. A medição por etapas com verificação fotográfica tem sido fundamental para garantir a qualidade. Quais ferramentas e metodologias vocês utilizam?' },
+    { title: 'Critérios ESG em licitações: como implementar?', cat: 4, user: 4, type: 'discussion',
+      content: 'Com a crescente demanda por sustentabilidade nas compras públicas, como vocês têm incorporado critérios ESG nos editais? Temos conseguido bons resultados com exigência de certificações ambientais, mas ainda há resistência de alguns fornecedores.' },
+    { title: 'Papel do agente de contratação vs pregoeiro', cat: 10, user: 5, type: 'discussion',
+      content: 'Com a Nova Lei de Licitações, o papel do agente de contratação ficou mais amplo que o do antigo pregoeiro. Na prática, como tem sido essa transição nos órgãos de vocês? Quais as principais dificuldades encontradas?' },
+    { title: 'Portal PNCP: experiências e dificuldades', cat: 8, user: 6, type: 'discussion',
+      content: 'O Portal Nacional de Contratações Públicas já é uma realidade. Gostaria de saber como tem sido a experiência de vocês com a plataforma. Encontraram dificuldades na integração com os sistemas internos? Quais melhorias sugerem?' },
 
     // Perguntas
-    { title: 'Qual o prazo minimo entre publicacao do edital e abertura no pregao eletronico?', cat: 7, user: 2, type: 'question',
-      content: 'Qual o prazo minimo entre publicacao do edital e abertura no pregao eletronico?' },
+    { title: 'Qual o prazo mínimo entre publicação do edital e abertura no pregão eletrônico?', cat: 7, user: 2, type: 'question',
+      content: 'Qual o prazo mínimo entre publicação do edital e abertura no pregão eletrônico?' },
     { title: 'Qual o limite de valor atualizado para dispensa por baixo valor?', cat: 3, user: 5, type: 'question',
       content: 'Qual o limite de valor atualizado para dispensa por baixo valor?' },
-    { title: 'ETP e obrigatorio para todas as contratacoes?', cat: 1, user: 3, type: 'question',
-      content: 'ETP e obrigatorio para todas as contratacoes?' },
-    { title: 'Precisa de certificacao especifica para ser agente de contratacao?', cat: 10, user: 6, type: 'question',
-      content: 'Precisa de certificacao especifica para ser agente de contratacao?' },
-    { title: 'Existem cursos gratuitos sobre a Nova Lei de Licitacoes?', cat: 11, user: 4, type: 'question',
-      content: 'Existem cursos gratuitos sobre a Nova Lei de Licitacoes?' },
+    { title: 'ETP é obrigatório para todas as contratações?', cat: 1, user: 3, type: 'question',
+      content: 'ETP é obrigatório para todas as contratações?' },
+    { title: 'Precisa de certificação específica para ser agente de contratação?', cat: 10, user: 6, type: 'question',
+      content: 'Precisa de certificação específica para ser agente de contratação?' },
+    { title: 'Existem cursos gratuitos sobre a Nova Lei de Licitações?', cat: 11, user: 4, type: 'question',
+      content: 'Existem cursos gratuitos sobre a Nova Lei de Licitações?' },
 
-    // Votacoes
-    { title: 'Qual ferramenta digital voce mais utiliza nas contratacoes?', cat: 8, user: 2, type: 'poll',
-      content: 'Queremos mapear as ferramentas mais utilizadas pelos profissionais de contratacoes publicas.',
-      pollOptions: ['ComprasNet/ComprasGov', 'Sistemas proprios do orgao', 'Portal PNCP', 'Banco de Precos', 'Planilhas Excel'] },
-    { title: 'Qual formato de capacitacao voce prefere?', cat: 11, user: 6, type: 'poll',
-      content: 'Para melhorar nossos programas de treinamento, queremos saber a preferencia de formato.',
+    // Votações
+    { title: 'Qual ferramenta digital você mais utiliza nas contratações?', cat: 8, user: 2, type: 'poll',
+      content: 'Queremos mapear as ferramentas mais utilizadas pelos profissionais de contratações públicas.',
+      pollOptions: ['ComprasNet/ComprasGov', 'Sistemas próprios do órgão', 'Portal PNCP', 'Banco de Preços', 'Planilhas Excel'] },
+    { title: 'Qual formato de capacitação você prefere?', cat: 11, user: 6, type: 'poll',
+      content: 'Para melhorar nossos programas de treinamento, queremos saber a preferência de formato.',
       pollOptions: ['Cursos online ao vivo', 'Cursos gravados (EAD)', 'Workshops presenciais', 'Mentorias individuais'] },
-    { title: 'Maior desafio no planejamento de contratacoes?', cat: 1, user: 3, type: 'poll',
-      content: 'Identifique o maior desafio que voce enfrenta na fase de planejamento.',
-      pollOptions: ['Pesquisa de precos', 'Elaboracao do ETP', 'Definicao de requisitos tecnicos', 'Analise de riscos', 'Cronograma apertado'] },
+    { title: 'Maior desafio no planejamento de contratações?', cat: 1, user: 3, type: 'poll',
+      content: 'Identifique o maior desafio que você enfrenta na fase de planejamento.',
+      pollOptions: ['Pesquisa de preços', 'Elaboração do ETP', 'Definição de requisitos técnicos', 'Análise de riscos', 'Cronograma apertado'] },
 
-    // Videos
-    { title: 'Aula completa sobre Sistema de Registro de Precos', cat: 9, user: 4, type: 'video',
-      content: 'Excelente aula sobre o Sistema de Registro de Precos na Nova Lei de Licitacoes. Aborda desde os conceitos basicos ate as particularidades da adesao a ata.',
+    // Vídeos
+    { title: 'Aula completa sobre Sistema de Registro de Preços', cat: 9, user: 4, type: 'video',
+      content: 'Excelente aula sobre o Sistema de Registro de Preços na Nova Lei de Licitações. Aborda desde os conceitos básicos até as particularidades da adesão à ata.',
       videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
-    { title: 'Tutorial: Como elaborar o Orcamento Estimativo', cat: 1, user: 5, type: 'video',
-      content: 'Tutorial pratico mostrando passo a passo como elaborar o orcamento estimativo para contratacoes publicas utilizando diferentes fontes de pesquisa de precos.',
+    { title: 'Tutorial: Como elaborar o Orçamento Estimativo', cat: 1, user: 5, type: 'video',
+      content: 'Tutorial prático mostrando passo a passo como elaborar o orçamento estimativo para contratações públicas utilizando diferentes fontes de pesquisa de preços.',
       videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
   ];
 
@@ -309,29 +309,29 @@ if (!adminExists) {
 
   // Respostas nos topicos de discussao e perguntas
   const replies = [
-    // Topico 1 (PCA) - id 1 e o admin, topicos de teste comecam no id 2
-    { topicId: 2, userId: 3, content: 'Na nossa instituicao o PCA reduziu em 30% o tempo medio dos processos. A chave foi o envolvimento das areas demandantes desde o inicio do planejamento.' },
-    { topicId: 2, userId: 4, content: 'Concordo! Aqui tambem melhorou bastante. O maior desafio foi convencer as areas a planejarem com antecedencia, mas depois que viram os resultados, a adesao aumentou.' },
-    { topicId: 2, userId: 6, content: 'No nosso caso, ainda estamos em fase de implementacao. Uma dica que dou e comecar com as contratacoes recorrentes - elas sao mais faceis de planejar e ja mostram resultados rapidos.' },
+    // Tópico 1 (PCA) - id 1 é o admin, tópicos de teste começam no id 2
+    { topicId: 2, userId: 3, content: 'Na nossa instituição o PCA reduziu em 30% o tempo médio dos processos. A chave foi o envolvimento das áreas demandantes desde o início do planejamento.' },
+    { topicId: 2, userId: 4, content: 'Concordo! Aqui também melhorou bastante. O maior desafio foi convencer as áreas a planejarem com antecedência, mas depois que viram os resultados, a adesão aumentou.' },
+    { topicId: 2, userId: 6, content: 'No nosso caso, ainda estamos em fase de implementação. Uma dica que dou é começar com as contratações recorrentes — elas são mais fáceis de planejar e já mostram resultados rápidos.' },
 
-    { topicId: 3, userId: 2, content: 'Otimas praticas! Aqui usamos um checklist digital para cada etapa da obra. Cada item verificado gera automaticamente um registro com foto, data e responsavel.' },
-    { topicId: 3, userId: 5, content: 'A medicao fotografica realmente e essencial. Complementaria sugerindo o uso de drones para obras maiores - reduz muito o tempo de verificacao em campo.' },
+    { topicId: 3, userId: 2, content: 'Ótimas práticas! Aqui usamos um checklist digital para cada etapa da obra. Cada item verificado gera automaticamente um registro com foto, data e responsável.' },
+    { topicId: 3, userId: 5, content: 'A medição fotográfica realmente é essencial. Complementaria sugerindo o uso de drones para obras maiores — reduz muito o tempo de verificação em campo.' },
 
-    { topicId: 4, userId: 2, content: 'Temos usado a exigencia de logistica reversa como criterio de sustentabilidade. Funciona bem para contratos de materiais de consumo.' },
-    { topicId: 4, userId: 6, content: 'Na nossa experiencia, o importante e colocar criterios de sustentabilidade como requisito da contratacao, nao como criterio de julgamento. Assim evita questionamentos.' },
+    { topicId: 4, userId: 2, content: 'Temos usado a exigência de logística reversa como critério de sustentabilidade. Funciona bem para contratos de materiais de consumo.' },
+    { topicId: 4, userId: 6, content: 'Na nossa experiência, o importante é colocar critérios de sustentabilidade como requisito da contratação, não como critério de julgamento. Assim evita questionamentos.' },
 
-    { topicId: 5, userId: 2, content: 'A transicao tem sido desafiadora. O agente de contratacao agora precisa dominar todo o processo, nao apenas a sessao publica. Capacitacao continua e fundamental.' },
+    { topicId: 5, userId: 2, content: 'A transição tem sido desafiadora. O agente de contratação agora precisa dominar todo o processo, não apenas a sessão pública. Capacitação contínua é fundamental.' },
     { topicId: 5, userId: 4, content: 'Concordo. Aqui criamos um programa de mentoria onde agentes mais experientes acompanham os novos nos primeiros processos.' },
 
     // Respostas nas perguntas
-    { topicId: 7, userId: 3, content: 'Para bens comuns o prazo minimo e de 8 dias uteis. Para servicos comuns de engenharia, 10 dias uteis. Confira o art. 55 da Lei 14.133/21.' },
-    { topicId: 8, userId: 6, content: 'O valor atualizado para dispensa por baixo valor e de R$ 59.906,02 para compras e servicos, e R$ 119.812,03 para obras e servicos de engenharia (Decreto 12.343/2024).' },
-    { topicId: 9, userId: 2, content: 'O ETP e obrigatorio como regra geral. Porem, ha casos de dispensa em que pode ser simplificado. Veja o art. 18 da Lei 14.133/21.' },
-    { topicId: 10, userId: 3, content: 'Nao existe certificacao obrigatoria por lei, mas o agente deve comprovar formacao compativel. Muitos orgaos exigem cursos da ENAP ou equivalentes.' },
-    { topicId: 11, userId: 5, content: 'Sim! A ENAP oferece varios cursos gratuitos. Tambem recomendo os materiais do TCU e a plataforma EVG (Escola Virtual do Governo).' },
+    { topicId: 7, userId: 3, content: 'Para bens comuns o prazo mínimo é de 8 dias úteis. Para serviços comuns de engenharia, 10 dias úteis. Confira o art. 55 da Lei 14.133/21.' },
+    { topicId: 8, userId: 6, content: 'O valor atualizado para dispensa por baixo valor é de R$ 59.906,02 para compras e serviços, e R$ 119.812,03 para obras e serviços de engenharia (Decreto 12.343/2024).' },
+    { topicId: 9, userId: 2, content: 'O ETP é obrigatório como regra geral. Porém, há casos de dispensa em que pode ser simplificado. Veja o art. 18 da Lei 14.133/21.' },
+    { topicId: 10, userId: 3, content: 'Não existe certificação obrigatória por lei, mas o agente deve comprovar formação compatível. Muitos órgãos exigem cursos da ENAP ou equivalentes.' },
+    { topicId: 11, userId: 5, content: 'Sim! A ENAP oferece vários cursos gratuitos. Também recomendo os materiais do TCU e a plataforma EVG (Escola Virtual do Governo).' },
 
-    { topicId: 6, userId: 4, content: 'Otimo mapeamento! Na minha experiencia, o Banco de Precos tem sido cada vez mais utilizado, especialmente para pesquisa de precos de referencia.' },
-    { topicId: 6, userId: 3, content: 'O PNCP ainda precisa evoluir bastante, mas ja e uma ferramenta importante para transparencia. A integracao com outros sistemas ainda e um desafio.' },
+    { topicId: 6, userId: 4, content: 'Ótimo mapeamento! Na minha experiência, o Banco de Preços tem sido cada vez mais utilizado, especialmente para pesquisa de preços de referência.' },
+    { topicId: 6, userId: 3, content: 'O PNCP ainda precisa evoluir bastante, mas já é uma ferramenta importante para transparência. A integração com outros sistemas ainda é um desafio.' },
   ];
 
   for (const r of replies) {
