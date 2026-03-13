@@ -33,7 +33,6 @@ function formatNumber(n) {
 }
 
 const SORT_OPTIONS = [
-  { key: '', label: 'Recentes' },
   { key: 'new', label: 'Novos' },
   { key: 'top', label: 'Mais Curtidos' },
   { key: 'views', label: 'Mais Visualizados' },

@@ -54,7 +54,6 @@ function VideoIcon({ active }) {
 
 const TOPIC_TYPES = [
   { key: 'discussion', label: 'Discussão', Icon: DiscussionIcon, desc: 'Dissertação ou debate' },
-  { key: 'question', label: 'Pergunta', Icon: QuestionIcon, desc: 'Máximo 100 caracteres' },
   { key: 'poll', label: 'Votação', Icon: PollIcon, desc: 'Enquete com alternativas' },
   { key: 'images', label: 'Imagem', Icon: ImageIcon, desc: 'Texto + imagem' },
   { key: 'video', label: 'Vídeo', Icon: VideoIcon, desc: 'Vídeo ou link externo' },
@@ -587,16 +586,7 @@ export default function NewTopic() {
         </div>
 
         {/* ====== Botões ====== */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100 mb-8">
-          <button
-            type="button"
-            className="flex items-center gap-2 bg-red-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-600 transition shadow-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-            Perguntar para Especialista
-          </button>
+        <div className="flex items-center justify-end pt-3 border-t border-gray-100 mb-8">
           <div className="flex items-center gap-3">
             <button
               type="button"
