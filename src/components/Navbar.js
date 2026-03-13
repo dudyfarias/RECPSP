@@ -362,7 +362,7 @@ export default function Navbar() {
               <>
                 <Link to="/forum" className="hover:text-gray-900 transition">Fórum</Link>
                 <Link to="/categories" className="hover:text-gray-900 transition">Categoria</Link>
-                <Link to="/forum?sort=top" className="hover:text-gray-900 transition">Destaques</Link>
+                {/* <Link to="/forum?sort=top" className="hover:text-gray-900 transition">Destaques</Link> */}
                 <Link to="/new-topic" className="hover:text-gray-900 transition">Novo</Link>
               </>
             ) : (

@@ -572,7 +572,7 @@ export default function Topic() {
           </div>
           <div className="flex items-center gap-2">
             <Link to="/login" className="text-sm px-4 py-1.5 rounded border border-gray-400 hover:bg-gray-600 transition">Entrar</Link>
-            <Link to="/register" className="text-sm px-4 py-1.5 rounded bg-red-500 hover:bg-red-600 transition font-medium">Registrar</Link>
+            <Link to="/register" className="text-sm px-4 py-1.5 rounded bg-red-500 hover:bg-red-600 transition font-medium">Inscrever</Link>
           </div>
         </div>
       )}
