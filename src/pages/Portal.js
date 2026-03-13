@@ -65,13 +65,13 @@ export default function Portal() {
       {/* Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl w-full">
         {sections.map((section) => (
-          <div key={section.title} className="relative">
+          <div key={section.title} className="relative h-full">
             {section.available && section.external ? (
               <a
                 href={section.to}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`block bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group`}
+                className={`block h-full bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group`}
               >
                 <div className={`inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br ${section.color} text-white mb-4 group-hover:scale-110 transition-transform`}>
                   {section.icon}
@@ -82,7 +82,7 @@ export default function Portal() {
             ) : section.available ? (
               <Link
                 to={section.to}
-                className={`block bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group`}
+                className={`block h-full bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group`}
               >
                 <div className={`inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br ${section.color} text-white mb-4 group-hover:scale-110 transition-transform`}>
                   {section.icon}
@@ -91,7 +91,7 @@ export default function Portal() {
                 <p className="text-sm text-gray-500 leading-relaxed">{section.description}</p>
               </Link>
             ) : (
-              <div className="block bg-white rounded-2xl border border-gray-200 p-8 opacity-60 cursor-not-allowed">
+              <div className="block h-full bg-white rounded-2xl border border-gray-200 p-8 opacity-60 cursor-not-allowed">
                 <div className={`inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br ${section.color} text-white mb-4`}>
                   {section.icon}
                 </div>
