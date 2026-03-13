@@ -31,8 +31,10 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
   });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const [allCategories, setAllCategories] = useState([]);
+  const [selectedCats, setSelectedCats] = useState([]);
 
-  // Fetch full profile on mount
+  // Fetch full profile + categories on mount
   useEffect(() => {
     async function load() {
       try {
@@ -45,10 +47,23 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
           organization: data.organization || '',
           bio: data.bio || '',
         }));
+        if (data.categories) {
+          setSelectedCats(data.categories.map(c => c.id));
+        }
+      } catch {}
+      try {
+        const cats = await apiFetch('/categories');
+        setAllCategories(cats);
       } catch {}
     }
     load();
   }, [token]);
+
+  function toggleCategory(catId) {
+    setSelectedCats(prev =>
+      prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]
+    );
+  }
 
   async function handleSave() {
     setSaving(true);
@@ -59,6 +74,11 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
       const updated = await apiFetch('/auth/profile', {
         method: 'PUT',
         body: JSON.stringify(body),
+      }, token);
+      // Salvar categorias de interesse
+      await apiFetch('/auth/categories', {
+        method: 'PUT',
+        body: JSON.stringify({ category_ids: selectedCats }),
       }, token);
       setMsg('Perfil salvo!');
       if (onUpdate) onUpdate(updated);
@@ -175,6 +195,31 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
               className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-red-400 resize-none placeholder-gray-400"
             />
           </div>
+
+          {/* Categorias de interesse */}
+          {allCategories.length > 0 && (
+            <div>
+              <p className="text-sm font-semibold text-gray-700 mb-2">Categorias de interesse</p>
+              <div className="flex flex-wrap gap-2">
+                {allCategories.map(cat => (
+                  <label key={cat.id} className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedCats.includes(cat.id)}
+                      onChange={() => toggleCategory(cat.id)}
+                      className="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-400"
+                    />
+                    <span
+                      className="text-xs font-medium text-white px-2 py-0.5 rounded-sm"
+                      style={{ backgroundColor: cat.color }}
+                    >
+                      {cat.name}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Email notifications */}
           <div>

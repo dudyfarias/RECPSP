@@ -472,6 +472,11 @@ app.post('/api/auth/login', (req, res) => {
 app.get('/api/auth/me', auth, (req, res) => {
   const user = db.prepare('SELECT id, username, email, role, location, organization, bio FROM users WHERE id = ?').get(req.user.id);
   if (!user) return res.status(404).json({ error: 'Usuario nao encontrado' });
+  user.categories = db.prepare(`
+    SELECT c.id, c.name, c.color FROM user_categories uc
+    JOIN categories c ON uc.category_id = c.id
+    WHERE uc.user_id = ?
+  `).all(req.user.id);
   res.json(user);
 });
 
@@ -1091,7 +1096,16 @@ app.get('/api/search', (req, res) => {
 // =================== ADMIN ===================
 
 app.get('/api/admin/users', auth, adminOnly, (req, res) => {
-  res.json(db.prepare('SELECT id, username, email, role, banned, created_at FROM users ORDER BY created_at DESC').all());
+  const users = db.prepare('SELECT id, username, email, role, banned, created_at FROM users ORDER BY created_at DESC').all();
+  const catStmt = db.prepare(`
+    SELECT c.id, c.name, c.color FROM user_categories uc
+    JOIN categories c ON uc.category_id = c.id
+    WHERE uc.user_id = ?
+  `);
+  for (const u of users) {
+    u.categories = catStmt.all(u.id);
+  }
+  res.json(users);
 });
 
 app.put('/api/admin/users/:id/ban', auth, adminOnly, (req, res) => {

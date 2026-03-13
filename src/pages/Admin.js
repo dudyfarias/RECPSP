@@ -253,6 +253,7 @@ export default function Admin() {
                   <th className="text-left px-5 py-2.5">Usuário</th>
                   <th className="text-left px-5 py-2.5 hidden sm:table-cell">Email</th>
                   <th className="text-left px-5 py-2.5">Papel</th>
+                  <th className="text-left px-5 py-2.5 hidden lg:table-cell">Categorias</th>
                   <th className="text-left px-5 py-2.5">Status</th>
                   <th className="text-left px-5 py-2.5 hidden sm:table-cell">Desde</th>
                   <th className="text-center px-5 py-2.5">Ações</th>
@@ -286,6 +287,19 @@ export default function Admin() {
                           {ROLE_LABELS[u.role]}
                         </span>
                       )}
+                    </td>
+                    <td className="px-5 py-3 hidden lg:table-cell">
+                      <div className="flex flex-wrap gap-1">
+                        {u.categories?.length > 0 ? (
+                          u.categories.map(cat => (
+                            <span key={cat.id} className="text-[10px] font-medium text-white px-1.5 py-0.5 rounded-sm" style={{ backgroundColor: cat.color }}>
+                              {cat.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-5 py-3">
                       <span className={`text-xs px-2 py-0.5 rounded font-medium ${u.banned ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
