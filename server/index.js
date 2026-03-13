@@ -716,8 +716,9 @@ app.get('/api/topics', optionalAuth, (req, res) => {
     conditions.push("(t.status = 'approved' OR (t.status = 'pending' AND t.user_id = ?))");
     params.push(req.user.id);
   } else {
-    // Visitante: ve apenas aprovados
+    // Visitante: ve apenas aprovados e nao travados
     conditions.push("t.status = 'approved'");
+    conditions.push("t.locked = 0");
   }
 
   if (category_id) {
@@ -767,7 +768,9 @@ app.get('/api/categories/:id/topics', optionalAuth, (req, res) => {
     conditions.push("(t.status = 'approved' OR (t.status = 'pending' AND t.user_id = ?))");
     params.push(req.user.id);
   } else {
+    // Visitante: ve apenas aprovados e nao travados
     conditions.push("t.status = 'approved'");
+    conditions.push("t.locked = 0");
   }
 
   const where = 'WHERE ' + conditions.join(' AND ');
@@ -935,6 +938,11 @@ app.get('/api/topics/:id', optionalAuth, (req, res) => {
     WHERE t.id = ?
   `).get(req.params.id);
   if (!topic) return res.status(404).json({ error: 'Topico nao encontrado' });
+
+  // Bloquear acesso de visitante a topico travado
+  if (topic.locked && !req.user) {
+    return res.status(403).json({ error: 'Este tópico está bloqueado. Crie uma conta para acessar.' });
+  }
 
   // Bloquear acesso a topico pendente se nao for autor, admin ou moderador
   if (topic.status === 'pending') {

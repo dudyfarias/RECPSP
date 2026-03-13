@@ -568,8 +568,7 @@ export default function Topic() {
       {!user && (
         <div className="flex items-center justify-between bg-gray-700 text-white px-5 py-3 rounded-lg mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-xs">F</div>
-            <span className="text-sm">Parece que você é novo aqui. Registre-se ou entre para postar.</span>
+            <span className="text-sm font-bold">Para responder, é necessário criar uma conta ou fazer login.</span>
           </div>
           <div className="flex items-center gap-2">
             <Link to="/login" className="text-sm px-4 py-1.5 rounded border border-gray-400 hover:bg-gray-600 transition">Entrar</Link>

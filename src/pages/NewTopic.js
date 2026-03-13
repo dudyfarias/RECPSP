@@ -248,7 +248,7 @@ export default function NewTopic() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
           </svg>
           <h2 className="text-lg font-bold text-gray-800 mb-2">Acesso necessário</h2>
-          <p className="text-sm text-gray-500 mb-4">Você precisa estar logado para criar um tópico.</p>
+          <p className="text-sm text-gray-500 mb-4">É necessário criar uma conta ou fazer login para criar um tópico.</p>
           <div className="flex items-center justify-center gap-3">
             <Link to="/login" className="text-sm font-semibold text-gray-600 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition">Entrar</Link>
             <Link to="/register" className="text-sm font-semibold text-white bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition">Inscrever</Link>
