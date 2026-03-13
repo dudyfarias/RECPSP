@@ -1049,11 +1049,74 @@ app.delete('/api/admin/users/:id', auth, adminOnly, (req, res) => {
   const target = db.prepare('SELECT id, role FROM users WHERE id = ?').get(req.params.id);
   if (!target) return res.status(404).json({ error: 'Usuario nao encontrado' });
   if (target.id === req.user.id) return res.status(400).json({ error: 'Nao e possivel deletar a si mesmo' });
-  db.prepare('DELETE FROM post_likes WHERE user_id = ?').run(req.params.id);
-  db.prepare('DELETE FROM likes WHERE user_id = ?').run(req.params.id);
-  db.prepare('DELETE FROM posts WHERE user_id = ?').run(req.params.id);
-  db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id);
-  res.json({ ok: true });
+
+  try {
+    // Buscar todos os topicos do usuario para limpar dependencias
+    const userTopics = db.prepare('SELECT id FROM topics WHERE user_id = ?').all(req.params.id);
+    const topicIds = userTopics.map(t => t.id);
+
+    // Limpar poll_votes e poll_options dos topicos do usuario
+    for (const tid of topicIds) {
+      db.prepare('DELETE FROM poll_votes WHERE topic_id = ?').run(tid);
+      const opts = db.prepare('SELECT id FROM poll_options WHERE topic_id = ?').all(tid);
+      for (const opt of opts) {
+        db.prepare('DELETE FROM poll_votes WHERE option_id = ?').run(opt.id);
+      }
+      db.prepare('DELETE FROM poll_options WHERE topic_id = ?').run(tid);
+    }
+
+    // Limpar topic_tags dos topicos do usuario
+    for (const tid of topicIds) {
+      db.prepare('DELETE FROM topic_tags WHERE topic_id = ?').run(tid);
+    }
+
+    // Limpar likes/dislikes dos posts em topicos do usuario (feitos por outros)
+    for (const tid of topicIds) {
+      const posts = db.prepare('SELECT id FROM posts WHERE topic_id = ?').all(tid);
+      for (const p of posts) {
+        db.prepare('DELETE FROM post_likes WHERE post_id = ?').run(p.id);
+        db.prepare('DELETE FROM post_dislikes WHERE post_id = ?').run(p.id);
+      }
+    }
+
+    // Limpar likes em topicos do usuario (feitos por outros)
+    for (const tid of topicIds) {
+      db.prepare('DELETE FROM likes WHERE topic_id = ?').run(tid);
+    }
+
+    // Limpar poll_votes feitos pelo usuario em outros topicos
+    db.prepare('DELETE FROM poll_votes WHERE user_id = ?').run(req.params.id);
+
+    // Limpar post_likes e post_dislikes feitos pelo usuario
+    db.prepare('DELETE FROM post_likes WHERE user_id = ?').run(req.params.id);
+    db.prepare('DELETE FROM post_dislikes WHERE user_id = ?').run(req.params.id);
+
+    // Limpar likes feitos pelo usuario em outros topicos
+    db.prepare('DELETE FROM likes WHERE user_id = ?').run(req.params.id);
+
+    // Limpar mensagens e notificacoes
+    db.prepare('DELETE FROM messages WHERE sender_id = ? OR receiver_id = ?').run(req.params.id, req.params.id);
+    db.prepare('DELETE FROM notifications WHERE user_id = ?').run(req.params.id);
+
+    // Limpar posts do usuario (em topicos de outros)
+    db.prepare('DELETE FROM posts WHERE user_id = ?').run(req.params.id);
+
+    // Limpar posts de outros em topicos do usuario
+    for (const tid of topicIds) {
+      db.prepare('DELETE FROM posts WHERE topic_id = ?').run(tid);
+    }
+
+    // Deletar topicos do usuario
+    db.prepare('DELETE FROM topics WHERE user_id = ?').run(req.params.id);
+
+    // Deletar o usuario
+    db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id);
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Erro ao deletar usuario:', err);
+    res.status(500).json({ error: 'Erro ao deletar usuario' });
+  }
 });
 
 app.put('/api/admin/users/:id/role', auth, adminOnly, (req, res) => {
