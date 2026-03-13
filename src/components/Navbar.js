@@ -312,7 +312,7 @@ export default function Navbar() {
           </Link>
 
           {/* Nav links */}
-          <div className="hidden md:flex items-center gap-5 text-sm text-gray-600 flex-shrink-0">
+          <div className="hidden md:flex items-center gap-5 text-sm text-gray-600 flex-shrink-0 whitespace-nowrap">
             {isInForum ? (
               <>
                 <Link to="/forum" className="hover:text-gray-900 transition">Fórum</Link>
@@ -331,7 +331,7 @@ export default function Navbar() {
           </div>
 
           {/* Search */}
-          <div className="flex-1 max-w-md ml-auto" ref={searchRef}>
+          <div className="flex-1 min-w-0 max-w-md" ref={searchRef}>
             <div className="relative">
               <div className="flex items-center bg-gray-100 rounded-lg px-3 py-1.5">
                 <svg className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
