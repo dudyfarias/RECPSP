@@ -150,10 +150,7 @@ export default function Home() {
             {/* Banner de convidado - aparece depois do 5o tópico */}
             {i === 5 && !user && showGuestBanner && (
               <div className="flex items-center justify-between bg-gray-700 text-white px-5 py-3 -mx-0">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-xs">F</div>
-                  <span className="text-sm">Parece que você é novo aqui. Registre-se de graça, aprenda e contribua!</span>
-                </div>
+                <span className="text-sm font-bold">Parece que você é novo aqui. Registre-se de graça, aprenda e contribua!</span>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Link to="/login" className="text-sm px-4 py-1.5 rounded border border-gray-400 hover:bg-gray-600 transition">
                     Entrar
