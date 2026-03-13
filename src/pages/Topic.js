@@ -645,9 +645,9 @@ export default function Topic() {
             {/* Table header */}
             <div className="flex items-center py-2 px-4 text-xs text-gray-400 font-medium uppercase tracking-wider border-b border-gray-100 bg-gray-50">
               <div className="flex-1">Tópicos</div>
-              <div className="w-24 text-right hidden sm:block">Categoria</div>
-              <div className="w-16 text-center">Respostas</div>
-              <div className="w-20 text-center hidden sm:block">Visualizações</div>
+              <div className="w-28 text-right hidden md:block mr-4">Categoria</div>
+              <div className="w-20 text-center mr-4">Respostas</div>
+              <div className="w-28 text-center hidden sm:block">Visualizações</div>
             </div>
             {related.map(r => (
               <div key={r.id} className="flex items-center py-2.5 px-4 hover:bg-gray-50 transition border-b border-gray-50 last:border-0">
@@ -656,13 +656,13 @@ export default function Topic() {
                     {r.title}
                   </Link>
                 </div>
-                <div className="w-24 hidden sm:flex justify-end">
+                <div className="w-28 hidden md:flex justify-end mr-4">
                   <span className="text-xs text-white px-2 py-0.5 rounded-sm truncate" style={{ backgroundColor: r.category_color }}>
                     {r.category_name}
                   </span>
                 </div>
-                <div className="w-16 text-center text-xs font-bold text-gray-700">{r.reply_count || 0}</div>
-                <div className="w-20 text-center text-xs text-gray-500 hidden sm:block">{formatNumber(r.views)}</div>
+                <div className="w-20 text-center text-xs font-bold text-gray-700 mr-4">{r.reply_count || 0}</div>
+                <div className="w-28 text-center text-xs text-gray-500 hidden sm:block">{formatNumber(r.views)}</div>
               </div>
             ))}
           </div>
