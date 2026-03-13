@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
@@ -33,6 +33,58 @@ const ROLE_STYLES = {
   admin: 'bg-yellow-100 text-yellow-700',
 };
 
+function CategoryDropdown({ userId, userCategories, allCategories, token, onUpdate }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const selected = userCategories?.map(c => c.id) || [];
+
+  useEffect(() => {
+    function handleClick(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  async function toggle(catId) {
+    const newIds = selected.includes(catId)
+      ? selected.filter(id => id !== catId)
+      : [...selected, catId];
+    try {
+      const cats = await apiFetch(`/admin/users/${userId}/categories`, {
+        method: 'PUT',
+        body: JSON.stringify({ category_ids: newIds }),
+      }, token);
+      onUpdate(userId, cats);
+    } catch (err) { alert(err.message); }
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded px-2 py-1 transition"
+      >
+        <span>{selected.length ? `${selected.length} selecionada${selected.length > 1 ? 's' : ''}` : 'Nenhuma'}</span>
+        <svg className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 left-0 bg-gray-700 text-white rounded-lg shadow-xl py-1 min-w-[200px] max-h-64 overflow-y-auto">
+          {allCategories?.map(cat => (
+            <label key={cat.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-600 cursor-pointer text-sm">
+              <input
+                type="checkbox"
+                checked={selected.includes(cat.id)}
+                onChange={() => toggle(cat.id)}
+                className="rounded border-gray-400 text-blue-500 focus:ring-blue-500"
+              />
+              {cat.name}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Admin() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -48,6 +100,17 @@ export default function Admin() {
     queryFn: () => apiFetch('/admin/users', {}, token),
     enabled: !!token && user?.role === 'admin',
   });
+
+  // ====== Categorias ======
+  const { data: allCategories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => apiFetch('/categories'),
+    enabled: !!token && user?.role === 'admin',
+  });
+
+  function handleCategoryUpdate(userId, cats) {
+    refetchUsers();
+  }
 
   // ====== Topicos pendentes (admin e moderador) ======
   const { data: pendingTopics, isLoading: pendingLoading, refetch: refetchPending } = useQuery({
@@ -289,17 +352,13 @@ export default function Admin() {
                       )}
                     </td>
                     <td className="px-5 py-3 hidden lg:table-cell">
-                      <div className="flex flex-wrap gap-1">
-                        {u.categories?.length > 0 ? (
-                          u.categories.map(cat => (
-                            <span key={cat.id} className="text-[10px] font-medium text-white px-1.5 py-0.5 rounded-sm" style={{ backgroundColor: cat.color }}>
-                              {cat.name}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-gray-300">—</span>
-                        )}
-                      </div>
+                      <CategoryDropdown
+                        userId={u.id}
+                        userCategories={u.categories}
+                        allCategories={allCategories}
+                        token={token}
+                        onUpdate={handleCategoryUpdate}
+                      />
                     </td>
                     <td className="px-5 py-3">
                       <span className={`text-xs px-2 py-0.5 rounded font-medium ${u.banned ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>

@@ -1108,6 +1108,24 @@ app.get('/api/admin/users', auth, adminOnly, (req, res) => {
   res.json(users);
 });
 
+app.put('/api/admin/users/:id/categories', auth, adminOnly, (req, res) => {
+  const { category_ids } = req.body;
+  if (!Array.isArray(category_ids)) return res.status(400).json({ error: 'category_ids deve ser um array' });
+  const target = db.prepare('SELECT id FROM users WHERE id = ?').get(req.params.id);
+  if (!target) return res.status(404).json({ error: 'Usuario nao encontrado' });
+  db.prepare('DELETE FROM user_categories WHERE user_id = ?').run(req.params.id);
+  const insert = db.prepare('INSERT INTO user_categories (user_id, category_id) VALUES (?, ?)');
+  for (const catId of category_ids) {
+    insert.run(req.params.id, catId);
+  }
+  const cats = db.prepare(`
+    SELECT c.id, c.name, c.color FROM user_categories uc
+    JOIN categories c ON uc.category_id = c.id
+    WHERE uc.user_id = ?
+  `).all(req.params.id);
+  res.json(cats);
+});
+
 app.put('/api/admin/users/:id/ban', auth, adminOnly, (req, res) => {
   const target = db.prepare('SELECT id, banned, role FROM users WHERE id = ?').get(req.params.id);
   if (!target) return res.status(404).json({ error: 'Usuario nao encontrado' });
