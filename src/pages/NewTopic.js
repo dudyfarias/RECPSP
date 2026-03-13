@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { useAuth } from '../context/AuthContext';
+import RichTextEditor from '../components/RichTextEditor';
 
 // ============= Topic Type Icons =============
 function DiscussionIcon({ active }) {
@@ -349,11 +350,11 @@ export default function NewTopic() {
         {type === 'discussion' && (
           <div className="mb-5">
             <label className="block text-sm font-semibold text-gray-700 mb-2">Sua dissertação</label>
-            <textarea
+            <RichTextEditor
               value={content}
-              onChange={e => setContent(e.target.value)}
-              placeholder="Escreva sua dissertação, argumento ou discussão aqui. Pode ser tão longo quanto necessário..."
-              className="w-full bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300 h-48 resize-y placeholder-gray-400"
+              onChange={setContent}
+              placeholder="Escreva sua dissertação... (use **negrito**, *itálico*, > citação)"
+              rows={8}
             />
             <p className="text-xs text-gray-400 mt-1">Sem limite de caracteres. Escreva livremente.</p>
           </div>
@@ -385,11 +386,11 @@ export default function NewTopic() {
         {type === 'poll' && (
           <div className="mb-5">
             <label className="block text-sm font-semibold text-gray-700 mb-2">Explicação ou pergunta da votação</label>
-            <textarea
+            <RichTextEditor
               value={content}
-              onChange={e => setContent(e.target.value)}
-              placeholder="Descreva o contexto da votação ou faça sua pergunta..."
-              className="w-full bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300 h-24 resize-none placeholder-gray-400"
+              onChange={setContent}
+              placeholder="Descreva o contexto da votação..."
+              rows={4}
             />
 
             <div className="mt-4">
@@ -445,11 +446,11 @@ export default function NewTopic() {
         {type === 'images' && (
           <div className="mb-5">
             <label className="block text-sm font-semibold text-gray-700 mb-2">Explicação</label>
-            <textarea
+            <RichTextEditor
               value={content}
-              onChange={e => setContent(e.target.value)}
+              onChange={setContent}
               placeholder="Descreva o contexto da imagem..."
-              className="w-full bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300 h-24 resize-none placeholder-gray-400"
+              rows={4}
             />
 
             <div className="mt-4">
@@ -501,11 +502,11 @@ export default function NewTopic() {
         {type === 'video' && (
           <div className="mb-5">
             <label className="block text-sm font-semibold text-gray-700 mb-2">Explicação</label>
-            <textarea
+            <RichTextEditor
               value={content}
-              onChange={e => setContent(e.target.value)}
+              onChange={setContent}
               placeholder="Descreva o contexto do vídeo..."
-              className="w-full bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-red-300 h-24 resize-none placeholder-gray-400"
+              rows={4}
             />
 
             <div className="mt-4">

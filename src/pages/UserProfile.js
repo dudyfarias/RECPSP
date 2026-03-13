@@ -1,7 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
 
 const AVATAR_COLORS = ['#b45309', '#9333ea', '#dc2626', '#0d9488', '#2563eb', '#c026d3', '#ea580c', '#16a34a'];
 function getAvatarColor(name) {
@@ -24,12 +25,42 @@ const ROLE_STYLES = {
 
 export default function UserProfile() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  const queryClient = useQueryClient();
+  const [editingCategories, setEditingCategories] = useState(false);
+  const [selectedCats, setSelectedCats] = useState([]);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['user-profile', id],
     queryFn: () => apiFetch(`/users/${id}`),
   });
+
+  const { data: allCategories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => apiFetch('/categories'),
+  });
+
+  function startEditCategories() {
+    setSelectedCats(profile?.categories?.map(c => c.id) || []);
+    setEditingCategories(true);
+  }
+
+  function toggleCategory(catId) {
+    setSelectedCats(prev =>
+      prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]
+    );
+  }
+
+  async function saveCategories() {
+    try {
+      await apiFetch('/auth/categories', {
+        method: 'PUT',
+        body: JSON.stringify({ category_ids: selectedCats }),
+      }, token);
+      setEditingCategories(false);
+      queryClient.invalidateQueries({ queryKey: ['user-profile', id] });
+    } catch (err) { alert(err.message); }
+  }
 
   if (isLoading) {
     return (
@@ -126,6 +157,62 @@ export default function UserProfile() {
               <p className="text-sm text-gray-700">{formatDate(profile.created_at)}</p>
             </div>
           </div>
+
+          {/* Categorias de interesse */}
+          {(profile.categories?.length > 0 || isOwnProfile) && (
+            <div className="pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-gray-400 uppercase font-medium">Categorias de interesse</p>
+                {isOwnProfile && !editingCategories && (
+                  <button onClick={startEditCategories} className="text-xs text-blue-600 hover:underline">
+                    Editar
+                  </button>
+                )}
+              </div>
+
+              {editingCategories ? (
+                <div>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {allCategories?.map(cat => (
+                      <label key={cat.id} className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedCats.includes(cat.id)}
+                          onChange={() => toggleCategory(cat.id)}
+                          className="rounded border-gray-300 text-red-500 focus:ring-red-300"
+                        />
+                        <span
+                          className="text-xs font-medium text-white px-2 py-0.5 rounded-sm"
+                          style={{ backgroundColor: cat.color }}
+                        >
+                          {cat.name}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={saveCategories} className="bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-600 transition">Salvar</button>
+                    <button onClick={() => setEditingCategories(false)} className="bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg text-xs hover:bg-gray-200 transition">Cancelar</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {profile.categories?.length > 0 ? (
+                    profile.categories.map(cat => (
+                      <Link key={cat.id} to={`/category/${cat.id}`}
+                        className="text-xs font-medium text-white px-2.5 py-1 rounded-sm hover:opacity-80 transition"
+                        style={{ backgroundColor: cat.color }}
+                      >
+                        {cat.name}
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-400">Nenhuma categoria selecionada</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Estatisticas */}
           <div className="flex gap-6 pt-4 border-t border-gray-100">

@@ -162,6 +162,17 @@ try { db.exec('ALTER TABLE topics ADD COLUMN video_url TEXT DEFAULT ""'); } catc
 // Adicionar coluna status para moderacao de topicos com imagem/video
 try { db.exec('ALTER TABLE topics ADD COLUMN status TEXT DEFAULT "approved"'); } catch {}
 
+// Tabela de categorias do usuario (interesses)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS user_categories (
+    user_id INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+    PRIMARY KEY (user_id, category_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+  );
+`);
+
 // =================== SEED ===================
 const adminExists = db.prepare('SELECT id FROM users WHERE role = ?').get('admin');
 if (!adminExists) {
@@ -475,6 +486,34 @@ app.put('/api/auth/profile', auth, (req, res) => {
   }
 });
 
+// Categorias do usuario (interesses)
+app.get('/api/auth/categories', auth, (req, res) => {
+  const cats = db.prepare(`
+    SELECT c.id, c.name, c.color FROM user_categories uc
+    JOIN categories c ON uc.category_id = c.id
+    WHERE uc.user_id = ?
+  `).all(req.user.id);
+  res.json(cats);
+});
+
+app.put('/api/auth/categories', auth, (req, res) => {
+  const { category_ids } = req.body;
+  if (!Array.isArray(category_ids)) return res.status(400).json({ error: 'category_ids deve ser um array' });
+
+  db.prepare('DELETE FROM user_categories WHERE user_id = ?').run(req.user.id);
+  const insert = db.prepare('INSERT INTO user_categories (user_id, category_id) VALUES (?, ?)');
+  for (const catId of category_ids) {
+    insert.run(req.user.id, catId);
+  }
+
+  const cats = db.prepare(`
+    SELECT c.id, c.name, c.color FROM user_categories uc
+    JOIN categories c ON uc.category_id = c.id
+    WHERE uc.user_id = ?
+  `).all(req.user.id);
+  res.json(cats);
+});
+
 // =================== PERFIL PUBLICO ===================
 
 app.get('/api/users/:id', (req, res) => {
@@ -484,6 +523,14 @@ app.get('/api/users/:id', (req, res) => {
   const topicCount = db.prepare('SELECT COUNT(*) as c FROM topics WHERE user_id = ?').get(req.params.id);
   u.post_count = postCount.c;
   u.topic_count = topicCount.c;
+
+  // Categorias de interesse do usuario
+  u.categories = db.prepare(`
+    SELECT c.id, c.name, c.color FROM user_categories uc
+    JOIN categories c ON uc.category_id = c.id
+    WHERE uc.user_id = ?
+  `).all(req.params.id);
+
   res.json(u);
 });
 
@@ -653,7 +700,7 @@ app.get('/api/topics', optionalAuth, (req, res) => {
   const topics = db.prepare(`
     SELECT t.*, u.username,
       c.name as category_name, c.color as category_color,
-      (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) - 1 as reply_count,
+      MAX(0, (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) - 1) as reply_count,
       (SELECT COUNT(*) FROM likes WHERE topic_id = t.id) as like_count,
       COALESCE((SELECT MAX(p.created_at) FROM posts p WHERE p.topic_id = t.id), t.created_at) as last_activity
     FROM topics t
@@ -698,7 +745,7 @@ app.get('/api/categories/:id/topics', optionalAuth, (req, res) => {
   const topics = db.prepare(`
     SELECT t.*, u.username,
       c.name as category_name, c.color as category_color,
-      (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) - 1 as reply_count,
+      MAX(0, (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) - 1) as reply_count,
       (SELECT COUNT(*) FROM likes WHERE topic_id = t.id) as like_count,
       COALESCE((SELECT MAX(p.created_at) FROM posts p WHERE p.topic_id = t.id), t.created_at) as last_activity
     FROM topics t
@@ -1009,7 +1056,7 @@ app.get('/api/topics/:id/related', (req, res) => {
   const related = db.prepare(`
     SELECT t.id, t.title, c.name as category_name, c.color as category_color,
       (SELECT COUNT(*) FROM likes WHERE topic_id = t.id) as like_count,
-      (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) - 1 as reply_count,
+      MAX(0, (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) - 1) as reply_count,
       t.views,
       COALESCE((SELECT MAX(p.created_at) FROM posts p WHERE p.topic_id = t.id), t.created_at) as last_activity
     FROM topics t JOIN categories c ON t.category_id = c.id
@@ -1094,9 +1141,10 @@ app.delete('/api/admin/users/:id', auth, adminOnly, (req, res) => {
     // Limpar likes feitos pelo usuario em outros topicos
     db.prepare('DELETE FROM likes WHERE user_id = ?').run(req.params.id);
 
-    // Limpar mensagens e notificacoes
+    // Limpar mensagens, notificacoes e categorias do usuario
     db.prepare('DELETE FROM messages WHERE sender_id = ? OR receiver_id = ?').run(req.params.id, req.params.id);
     db.prepare('DELETE FROM notifications WHERE user_id = ?').run(req.params.id);
+    db.prepare('DELETE FROM user_categories WHERE user_id = ?').run(req.params.id);
 
     // Limpar posts do usuario (em topicos de outros)
     db.prepare('DELETE FROM posts WHERE user_id = ?').run(req.params.id);
@@ -1141,7 +1189,7 @@ app.get('/api/admin/topics/pending', auth, (req, res) => {
   const topics = db.prepare(`
     SELECT t.*, u.username,
       c.name as category_name, c.color as category_color,
-      (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) - 1 as reply_count,
+      MAX(0, (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) - 1) as reply_count,
       (SELECT p.content FROM posts p WHERE p.topic_id = t.id ORDER BY p.created_at ASC LIMIT 1) as first_post_content
     FROM topics t
     JOIN users u ON t.user_id = u.id

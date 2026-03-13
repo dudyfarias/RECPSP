@@ -312,7 +312,7 @@ export default function Navbar() {
           </Link>
 
           {/* Nav links */}
-          <div className="hidden md:flex items-center gap-5 text-sm text-gray-600">
+          <div className="hidden md:flex items-center gap-5 text-sm text-gray-600 flex-shrink-0">
             {isInForum ? (
               <>
                 <Link to="/forum" className="hover:text-gray-900 transition">Fórum</Link>
