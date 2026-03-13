@@ -30,6 +30,15 @@ export default function Categories() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* Breadcrumb */}
+      <div className="text-sm text-gray-500 mb-4">
+        <Link to="/" className="hover:text-blue-600">Início</Link>
+        <span className="mx-2 text-gray-300">/</span>
+        <Link to="/forum" className="hover:text-blue-600">Fórum</Link>
+        <span className="mx-2 text-gray-300">/</span>
+        <span className="font-medium text-gray-700">Categorias</span>
+      </div>
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Categorias</h1>
         {user?.role === 'admin' && (

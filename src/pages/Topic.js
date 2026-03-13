@@ -391,6 +391,8 @@ export default function Topic() {
     <div className="max-w-5xl mx-auto px-4 py-6">
       {/* Breadcrumb */}
       <div className="text-sm text-gray-500 mb-4">
+        <Link to="/" className="hover:text-blue-600">Início</Link>
+        <span className="mx-2 text-gray-300">/</span>
         <Link to="/forum" className="hover:text-blue-600">Fórum</Link>
         <span className="mx-2 text-gray-300">/</span>
         <Link to={`/category/${topic.category_id}`} className="hover:text-blue-600">{topic.category_name}</Link>

@@ -94,6 +94,13 @@ export default function Home() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-0">
+      {/* Breadcrumb */}
+      <div className="text-sm text-gray-500 mt-4 mb-2 px-4">
+        <Link to="/" className="hover:text-blue-600">Início</Link>
+        <span className="mx-2 text-gray-300">/</span>
+        <span className="font-medium text-gray-700">Fórum</span>
+      </div>
+
       {/* Barra de filtros */}
       <div className="flex items-center justify-between py-3 px-4 border-b border-gray-200 bg-white flex-wrap gap-2">
         <div className="flex items-center gap-1.5 flex-wrap">
