@@ -302,7 +302,7 @@ export default function Admin() {
 
       {/* ====== Aba Usuários (admin only) ====== */}
       {activeTab === 'users' && user.role === 'admin' && (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-lg border border-gray-200 overflow-visible">
           <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
             Usuários ({users?.length || 0})
           </div>
