@@ -220,6 +220,21 @@ if (!adminExists) {
   // IDs: admin=1, Maria=2, Joao=3, Ana=4, Carlos=5, Fernanda=6
   // Categorias: 1=Planejamento, 2=Obras, 3=Contratacao Direta, 4=Sustentabilidade, 5=Documentos, 6=Gestao Contratual, 7=Licitacao, 8=Inovacao, 9=Central de Compras, 10=Governanca, 11=Capacitacao
 
+  // Categorias de interesse dos usuarios de teste
+  const testUserCategories = [
+    [2, [1, 7, 9]],       // Maria: Planejamento, Licitacao, Central de Compras
+    [3, [2, 6]],           // Joao: Obras, Gestao Contratual
+    [4, [4, 8, 11]],       // Ana: Sustentabilidade, Inovacao, Capacitacao
+    [5, [3, 7, 10]],       // Carlos: Contratacao Direta, Licitacao, Governanca
+    [6, [1, 5, 6, 9]],     // Fernanda: Planejamento, Documentos, Gestao Contratual, Central de Compras
+  ];
+  const insertUserCat = db.prepare('INSERT INTO user_categories (user_id, category_id) VALUES (?, ?)');
+  for (const [userId, catIds] of testUserCategories) {
+    for (const catId of catIds) {
+      insertUserCat.run(userId, catId);
+    }
+  }
+
   const testTopics = [
     // Discussoes
     { title: 'Impacto do PCA na eficiencia das contratacoes', cat: 1, user: 2, type: 'discussion',
