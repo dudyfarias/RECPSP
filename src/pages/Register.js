@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../api';
@@ -21,17 +22,32 @@ const ESTADO_NOMES = {
 
 export default function Register() {
   const [form, setForm] = useState({ username: '', email: '', password: '', organization: '', location: '' });
+  const [selectedCats, setSelectedCats] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => apiFetch('/categories'),
+  });
+
+  function toggleCategory(catId) {
+    setSelectedCats(prev =>
+      prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]
+    );
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const data = await apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(form) });
+      const data = await apiFetch('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ ...form, category_ids: selectedCats }),
+      });
       login(data.token, data.user);
       navigate('/forum');
     } catch (err) { setError(err.message); }
@@ -85,6 +101,32 @@ export default function Register() {
               ))}
             </select>
           </div>
+
+          {/* Categorias de interesse */}
+          {categories?.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-2">Categorias de interesse</label>
+              <div className="flex flex-wrap gap-2">
+                {categories.map(cat => (
+                  <label key={cat.id} className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedCats.includes(cat.id)}
+                      onChange={() => toggleCategory(cat.id)}
+                      className="rounded border-gray-300 text-red-500 focus:ring-red-300"
+                    />
+                    <span
+                      className="text-xs font-medium text-white px-2 py-0.5 rounded-sm"
+                      style={{ backgroundColor: cat.color }}
+                    >
+                      {cat.name}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           <button type="submit" disabled={loading}
             className="w-full bg-red-500 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition disabled:opacity-50">
             {loading ? 'Criando...' : 'Criar Conta'}
