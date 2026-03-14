@@ -609,12 +609,35 @@ export default function NewTopic() {
       {/* ====== Tópicos Relacionados ====== */}
       {(() => {
         const userTagList = tags ? tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) : [];
-        const relatedTopics = (allTopics || []).filter(t => {
-          if (!categoryId && userTagList.length === 0) return false;
-          const matchCategory = categoryId && String(t.category_id) === String(categoryId);
-          const matchTags = userTagList.length > 0 && t.tags?.some(tag => userTagList.includes(tag.toLowerCase()));
-          return matchCategory || matchTags;
-        }).slice(0, 8);
+        const stopwords = ['como','para','que','com','por','das','dos','uma','uns','mais','entre','sobre','qual','quais','pode','deve','todas','todos','este','esta','esse','essa','novo','nova','são','tem','ser','ter','foi','sua','seu','ele','ela','nas','nos','sem','feito','fazer'];
+        const titleWords = title.toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .split(/\s+/)
+          .filter(w => w.length >= 3 && !stopwords.includes(w));
+
+        const scored = (allTopics || []).map(t => {
+          let score = 0;
+          // Pontuação por palavras-chave do título (peso 3 cada)
+          if (titleWords.length > 0) {
+            const topicTitle = t.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            for (const word of titleWords) {
+              if (topicTitle.includes(word)) score += 3;
+            }
+          }
+          // Pontuação por tags em comum (peso 2 cada)
+          if (userTagList.length > 0 && t.tags?.length > 0) {
+            for (const tag of t.tags) {
+              if (userTagList.includes(tag.toLowerCase())) score += 2;
+            }
+          }
+          // Pontuação por mesma categoria (peso 1)
+          if (categoryId && String(t.category_id) === String(categoryId)) score += 1;
+          return { ...t, score };
+        }).filter(t => t.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 8);
+
+        const relatedTopics = scored;
 
         if (relatedTopics.length === 0) return null;
 
