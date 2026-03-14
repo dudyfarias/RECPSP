@@ -1181,22 +1181,30 @@ app.get('/api/resources', (req, res) => {
 app.get('/api/topics/:id/related-resources', (req, res) => {
   const topic = db.prepare('SELECT title FROM topics WHERE id = ?').get(req.params.id);
   if (!topic) return res.json([]);
-  // Extrair palavras-chave do título (3+ caracteres, sem stopwords)
-  const stopwords = ['como','para','que','com','por','das','dos','uma','uns','mais','entre','sobre','qual','quais','pode','deve','todas','todos','este','esta','esse','essa','novo','nova','são','tem','ser','ter','foi','sua','seu','ele','ela','nas','nos','sem'];
+  const stopwords = ['como','para','que','com','por','das','dos','uma','uns','mais','entre','sobre','qual','quais','pode','deve','todas','todos','este','esta','esse','essa','novo','nova','são','tem','ser','ter','foi','sua','seu','ele','ela','nas','nos','sem','pilula','parte'];
   const words = topic.title.toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .split(/\s+/)
     .filter(w => w.length >= 3 && !stopwords.includes(w));
   if (words.length === 0) return res.json([]);
-  // Buscar resources que contenham alguma das palavras-chave
+  // Buscar todos os resources que contenham alguma palavra-chave
   const conditions = words.map(() => 'LOWER(title) LIKE ?').join(' OR ');
   const params = words.map(w => `%${w}%`);
-  const resources = db.prepare(`
+  const candidates = db.prepare(`
     SELECT id, title, url, type, source FROM resources
     WHERE ${conditions}
-    LIMIT 5
   `).all(...params);
-  res.json(resources);
+  // Pontuar cada resource por quantidade de palavras-chave encontradas
+  const scored = candidates.map(r => {
+    const rTitle = r.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    let score = 0;
+    for (const w of words) {
+      if (rTitle.includes(w)) score += 1;
+    }
+    return { ...r, score };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  res.json(scored.slice(0, 5));
 });
 
 app.post('/api/admin/resources/import-playlist', auth, adminOnly, async (req, res) => {
