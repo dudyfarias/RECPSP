@@ -89,6 +89,9 @@ export default function Admin() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('moderation');
+  const [playlistUrl, setPlaylistUrl] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState('');
 
   useEffect(() => {
     if (user && user.role !== 'admin' && user.role !== 'moderator') navigate('/');
@@ -110,6 +113,41 @@ export default function Admin() {
 
   function handleCategoryUpdate(userId, cats) {
     refetchUsers();
+  }
+
+  // ====== Resources ======
+  const { data: resources, refetch: refetchResources } = useQuery({
+    queryKey: ['admin-resources'],
+    queryFn: () => apiFetch('/resources'),
+    enabled: !!token && user?.role === 'admin',
+  });
+
+  async function handleImportPlaylist() {
+    if (!playlistUrl) return;
+    const match = playlistUrl.match(/[?&]list=([^&]+)/);
+    if (!match) { setImportMsg('URL inválida. Cole a URL da playlist do YouTube.'); return; }
+    setImporting(true);
+    setImportMsg('');
+    try {
+      const data = await apiFetch('/admin/resources/import-playlist', {
+        method: 'POST',
+        body: JSON.stringify({ playlist_id: match[1] }),
+      }, token);
+      setImportMsg(`${data.imported} vídeos importados (${data.total} total na playlist)`);
+      setPlaylistUrl('');
+      refetchResources();
+    } catch (err) {
+      setImportMsg('Erro: ' + err.message);
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  async function handleDeleteResource(id) {
+    try {
+      await apiFetch(`/admin/resources/${id}`, { method: 'DELETE' }, token);
+      refetchResources();
+    } catch (err) { alert(err.message); }
   }
 
   // ====== Topicos pendentes (admin e moderador) ======
@@ -182,16 +220,28 @@ export default function Admin() {
           )}
         </button>
         {user.role === 'admin' && (
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`px-4 py-2.5 text-sm font-medium rounded-t-lg transition ${
-              activeTab === 'users'
-                ? 'bg-white border border-b-white border-gray-200 -mb-px text-gray-800'
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            Usuários ({users?.length || 0})
-          </button>
+          <>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`px-4 py-2.5 text-sm font-medium rounded-t-lg transition ${
+                activeTab === 'users'
+                  ? 'bg-white border border-b-white border-gray-200 -mb-px text-gray-800'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Usuários ({users?.length || 0})
+            </button>
+            <button
+              onClick={() => setActiveTab('resources')}
+              className={`px-4 py-2.5 text-sm font-medium rounded-t-lg transition ${
+                activeTab === 'resources'
+                  ? 'bg-white border border-b-white border-gray-200 -mb-px text-gray-800'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Capacitação ({resources?.length || 0})
+            </button>
+          </>
         )}
       </div>
 
@@ -411,6 +461,67 @@ export default function Admin() {
                 ))}
               </tbody>
             </table>
+          )}
+        </div>
+      )}
+
+      {/* ====== Aba Capacitação (admin only) ====== */}
+      {activeTab === 'resources' && user.role === 'admin' && (
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Importar Playlist do YouTube</h3>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Cole a URL da playlist do YouTube"
+                value={playlistUrl}
+                onChange={e => setPlaylistUrl(e.target.value)}
+                className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
+              />
+              <button
+                onClick={handleImportPlaylist}
+                disabled={importing || !playlistUrl}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition disabled:opacity-50"
+              >
+                {importing ? 'Importando...' : 'Importar'}
+              </button>
+            </div>
+            {importMsg && (
+              <p className={`text-xs mt-2 ${importMsg.startsWith('Erro') ? 'text-red-500' : 'text-green-600'}`}>{importMsg}</p>
+            )}
+          </div>
+
+          <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Vídeos Importados ({resources?.length || 0})
+          </div>
+
+          {!resources?.length ? (
+            <div className="text-center py-12">
+              <svg className="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <p className="text-sm text-gray-400">Nenhum vídeo importado ainda</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+              {resources.map(r => (
+                <div key={r.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition">
+                  <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.55A3.02 3.02 0 00.5 6.19 31.6 31.6 0 000 12a31.6 31.6 0 00.5 5.81 3.02 3.02 0 002.12 2.14c1.88.55 9.38.55 9.38.55s7.5 0 9.38-.55a3.02 3.02 0 002.12-2.14A31.6 31.6 0 0024 12a31.6 31.6 0 00-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>
+                  <a href={r.url} target="_blank" rel="noopener noreferrer" className="flex-1 text-sm text-gray-700 hover:text-blue-600 truncate">
+                    {r.title}
+                  </a>
+                  <button
+                    onClick={() => handleDeleteResource(r.id)}
+                    className="w-7 h-7 flex items-center justify-center rounded text-red-400 hover:bg-red-50 transition"
+                    title="Remover"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}

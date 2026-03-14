@@ -288,6 +288,7 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
+  const [resourceResults, setResourceResults] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const searchRef = useRef(null);
@@ -327,11 +328,12 @@ export default function Navbar() {
   }
 
   useEffect(() => {
-    if (query.length < 2) { setResults([]); return; }
+    if (query.length < 2) { setResults([]); setResourceResults([]); return; }
     const t = setTimeout(async () => {
       try {
         const data = await apiFetch(`/search?q=${encodeURIComponent(query)}`);
-        setResults(data);
+        setResults(data.topics || []);
+        setResourceResults(data.resources || []);
       } catch {}
     }, 300);
     return () => clearTimeout(t);
@@ -391,9 +393,9 @@ export default function Navbar() {
                   className="bg-transparent text-sm text-gray-700 outline-none w-full placeholder-gray-400"
                 />
               </div>
-              {searchOpen && results.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-50">
-                  {results.map(r => (
+              {searchOpen && (results.length > 0 || resourceResults.length > 0) && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-50 max-h-80 overflow-y-auto">
+                  {results.length > 0 && results.map(r => (
                     <Link
                       key={r.id}
                       to={`/topic/${r.id}`}
@@ -409,6 +411,27 @@ export default function Navbar() {
                       </span>
                     </Link>
                   ))}
+                  {resourceResults.length > 0 && (
+                    <>
+                      <div className="px-4 py-1.5 bg-gray-50 border-t border-gray-100">
+                        <span className="text-xs font-semibold text-gray-500 uppercase">Capacitação</span>
+                      </div>
+                      {resourceResults.map(r => (
+                        <a
+                          key={`res-${r.id}`}
+                          href={r.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => { setSearchOpen(false); setQuery(''); }}
+                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition"
+                        >
+                          <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.55A3.02 3.02 0 00.5 6.19 31.6 31.6 0 000 12a31.6 31.6 0 00.5 5.81 3.02 3.02 0 002.12 2.14c1.88.55 9.38.55 9.38.55s7.5 0 9.38-.55a3.02 3.02 0 002.12-2.14A31.6 31.6 0 0024 12a31.6 31.6 0 00-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>
+                          <span className="text-sm text-gray-700 truncate">{r.title}</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 ml-auto flex-shrink-0">Vídeo</span>
+                        </a>
+                      ))}
+                    </>
+                  )}
                 </div>
               )}
             </div>

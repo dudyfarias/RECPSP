@@ -173,6 +173,19 @@ db.exec(`
   );
 `);
 
+// Tabela de recursos externos (videos, playlists)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS resources (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    url TEXT NOT NULL,
+    type TEXT DEFAULT 'video',
+    source TEXT DEFAULT 'youtube',
+    playlist_id TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
 // =================== SEED ===================
 const adminExists = db.prepare('SELECT id FROM users WHERE role = ?').get('admin');
 if (!adminExists) {
@@ -1107,13 +1120,65 @@ app.get('/api/topics/:id/related', (req, res) => {
 
 app.get('/api/search', (req, res) => {
   const { q } = req.query;
-  if (!q || q.length < 2) return res.json([]);
+  if (!q || q.length < 2) return res.json({ topics: [], resources: [] });
   const topics = db.prepare(`
     SELECT t.id, t.title, c.name as category_name, c.color as category_color
     FROM topics t JOIN categories c ON t.category_id = c.id
     WHERE t.title LIKE ? LIMIT 10
   `).all(`%${q}%`);
-  res.json(topics);
+  const resources = db.prepare(`
+    SELECT id, title, url, type, source FROM resources
+    WHERE title LIKE ? LIMIT 5
+  `).all(`%${q}%`);
+  res.json({ topics, resources });
+});
+
+// =================== RESOURCES ===================
+
+app.get('/api/resources', (req, res) => {
+  const resources = db.prepare('SELECT * FROM resources ORDER BY created_at DESC').all();
+  res.json(resources);
+});
+
+app.post('/api/admin/resources/import-playlist', auth, adminOnly, async (req, res) => {
+  const { playlist_id } = req.body;
+  if (!playlist_id) return res.status(400).json({ error: 'playlist_id é obrigatório' });
+  const API_KEY = process.env.YOUTUBE_API_KEY || 'AIzaSyAv2d8fa8n13SdGc0SJHUT1D883jlB8bFg';
+  try {
+    let allItems = [];
+    let nextPageToken = '';
+    do {
+      const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlist_id}&key=${API_KEY}${nextPageToken ? '&pageToken=' + nextPageToken : ''}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data.error) return res.status(400).json({ error: data.error.message });
+      allItems = allItems.concat(data.items || []);
+      nextPageToken = data.nextPageToken || '';
+    } while (nextPageToken);
+
+    const insert = db.prepare('INSERT OR IGNORE INTO resources (title, url, type, source, playlist_id) VALUES (?, ?, ?, ?, ?)');
+    let imported = 0;
+    for (const item of allItems) {
+      const title = item.snippet.title;
+      if (title === 'Private video' || title === 'Deleted video') continue;
+      const videoId = item.snippet.resourceId.videoId;
+      const url = `https://www.youtube.com/watch?v=${videoId}`;
+      const existing = db.prepare('SELECT id FROM resources WHERE url = ?').get(url);
+      if (!existing) {
+        insert.run(title, url, 'video', 'youtube', playlist_id);
+        imported++;
+      }
+    }
+    const total = db.prepare('SELECT COUNT(*) as count FROM resources WHERE playlist_id = ?').get(playlist_id);
+    res.json({ imported, total: total.count, playlist_id });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao importar playlist: ' + err.message });
+  }
+});
+
+app.delete('/api/admin/resources/:id', auth, adminOnly, (req, res) => {
+  db.prepare('DELETE FROM resources WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
 });
 
 // =================== ADMIN ===================
