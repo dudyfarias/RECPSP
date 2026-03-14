@@ -398,6 +398,44 @@ if (!adminExists) {
   console.log('Dados de teste criados: 5 usuarios, 15 topicos, respostas, likes e votos');
 }
 
+// =================== IMPORTAR PLAYLISTS PADRÃO ===================
+const defaultPlaylists = [
+  'PLU90JTu_sKGNsH1MyhVhF5HX0psESZ4Lc',
+  'PLU90JTu_sKGNYClHCtobIPFXP7TehERsL',
+  'PLU90JTu_sKGMcBh4EwzWwrFjpP1caBYBz',
+];
+
+async function importDefaultPlaylists() {
+  const API_KEY = process.env.YOUTUBE_API_KEY || 'AIzaSyAv2d8fa8n13SdGc0SJHUT1D883jlB8bFg';
+  const existingCount = db.prepare('SELECT COUNT(*) as c FROM resources').get().c;
+  if (existingCount > 0) return; // já importado
+  const insert = db.prepare('INSERT OR IGNORE INTO resources (title, url, type, source, playlist_id) VALUES (?, ?, ?, ?, ?)');
+  for (const playlistId of defaultPlaylists) {
+    try {
+      let nextPageToken = '';
+      do {
+        const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${API_KEY}${nextPageToken ? '&pageToken=' + nextPageToken : ''}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.error) { console.log(`[playlists] Erro na playlist ${playlistId}:`, data.error.message); break; }
+        for (const item of (data.items || [])) {
+          const title = item.snippet.title;
+          if (title === 'Private video' || title === 'Deleted video') continue;
+          const videoId = item.snippet.resourceId.videoId;
+          const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+          const existing = db.prepare('SELECT id FROM resources WHERE url = ?').get(videoUrl);
+          if (!existing) insert.run(title, videoUrl, 'video', 'youtube', playlistId);
+        }
+        nextPageToken = data.nextPageToken || '';
+      } while (nextPageToken);
+    } catch (err) { console.log(`[playlists] Erro ao importar ${playlistId}:`, err.message); }
+  }
+  const total = db.prepare('SELECT COUNT(*) as c FROM resources').get().c;
+  console.log(`[playlists] ${total} vídeos importados de ${defaultPlaylists.length} playlists`);
+}
+
+importDefaultPlaylists();
+
 // =================== CORRIGIR ACENTOS NAS CATEGORIAS (banco existente) ===================
 const catFixes = [
   [1, 'Planejamento', 'Planejamento de contratações públicas'],
