@@ -1178,6 +1178,27 @@ app.get('/api/resources', (req, res) => {
   res.json(resources);
 });
 
+app.get('/api/topics/:id/related-resources', (req, res) => {
+  const topic = db.prepare('SELECT title FROM topics WHERE id = ?').get(req.params.id);
+  if (!topic) return res.json([]);
+  // Extrair palavras-chave do título (3+ caracteres, sem stopwords)
+  const stopwords = ['como','para','que','com','por','das','dos','uma','uns','mais','entre','sobre','qual','quais','pode','deve','todas','todos','este','esta','esse','essa','novo','nova','são','tem','ser','ter','foi','sua','seu','ele','ela','nas','nos','sem'];
+  const words = topic.title.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .split(/\s+/)
+    .filter(w => w.length >= 3 && !stopwords.includes(w));
+  if (words.length === 0) return res.json([]);
+  // Buscar resources que contenham alguma das palavras-chave
+  const conditions = words.map(() => 'LOWER(title) LIKE ?').join(' OR ');
+  const params = words.map(w => `%${w}%`);
+  const resources = db.prepare(`
+    SELECT id, title, url, type, source FROM resources
+    WHERE ${conditions}
+    LIMIT 5
+  `).all(...params);
+  res.json(resources);
+});
+
 app.post('/api/admin/resources/import-playlist', auth, adminOnly, async (req, res) => {
   const { playlist_id } = req.body;
   if (!playlist_id) return res.status(400).json({ error: 'playlist_id é obrigatório' });

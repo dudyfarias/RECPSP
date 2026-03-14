@@ -295,6 +295,11 @@ export default function Topic() {
     queryFn: () => apiFetch(`/topics/${id}/related`),
   });
 
+  const { data: relatedResources } = useQuery({
+    queryKey: ['related-resources', id],
+    queryFn: () => apiFetch(`/topics/${id}/related-resources`),
+  });
+
   // Registrar visualização apenas uma vez ao entrar no tópico
   useEffect(() => {
     apiFetch(`/topics/${id}/view`, { method: 'POST' }).catch(() => {});
@@ -608,6 +613,30 @@ export default function Topic() {
           </div>
         )
       ) : null}
+
+      {/* Related resources (capacitação) */}
+      {relatedResources && relatedResources.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-700">Capacitação relacionada</h3>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden divide-y divide-gray-50">
+            {relatedResources.map(r => (
+              <a
+                key={r.id}
+                href={r.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition"
+              >
+                <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.55A3.02 3.02 0 00.5 6.19 31.6 31.6 0 000 12a31.6 31.6 0 00.5 5.81 3.02 3.02 0 002.12 2.14c1.88.55 9.38.55 9.38.55s7.5 0 9.38-.55a3.02 3.02 0 002.12-2.14A31.6 31.6 0 0024 12a31.6 31.6 0 00-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>
+                <span className="text-sm text-gray-700 hover:text-blue-600 transition truncate">{r.title}</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 ml-auto flex-shrink-0">Vídeo</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Related topics */}
       {related && related.length > 0 && (
