@@ -454,6 +454,33 @@ async function importDefaultPlaylists() {
 
 importDefaultPlaylists();
 
+// =================== CURSOS DE CAPACITAÇÃO (seed fixo) ===================
+const cursos = [
+  // Planejamento de contratação
+  { title: 'Gestão de Riscos nas Contratações Públicas', url: 'https://suap.enap.gov.br/vitrine/curso/2070/?area=8', type: 'curso', source: 'enap' },
+  { title: 'Planilha de Custos e Formação de Preços', url: 'https://suap.enap.gov.br/vitrine/curso/1522/?area=14', type: 'curso', source: 'enap' },
+  { title: 'Elaboração de termos de referência para contratação de bens e serviços na Nova Lei de Licitações', url: 'https://www.escolavirtual.gov.br/curso/941', type: 'curso', source: 'escolavirtual' },
+  { title: 'Praticando a Compra Pública - ETP e TR', url: 'https://suap.enap.gov.br/vitrine/search_results/?texto_curso=Praticando%20a%20Compra%20P%C3%BAblica:%20ETP%20e%20TR', type: 'curso', source: 'enap' },
+  { title: 'Trilha de Aprendizagem ENAP - Planejamento da Contratação', url: 'https://sites.google.com/enap.gov.br/trilha-de-contratacoes/planejamento-da-contratacao', type: 'curso', source: 'enap' },
+  // Seleção do Fornecedor
+  { title: 'Nova Lei de Licitações - Modalidade e Seleção de Fornecedores', url: 'https://www.escolavirtual.gov.br/curso/439', type: 'curso', source: 'escolavirtual' },
+  { title: 'Licitação por Concorrência, Concurso, Leilão e Diálogo Competitivo', url: 'https://www.escolavirtual.gov.br/curso/925', type: 'curso', source: 'escolavirtual' },
+  { title: 'Série "Nova Lei de Licitações: Um ano para a construção do Futuro"', url: 'https://www.youtube.com/watch?v=Gf2IzXfPgdk', type: 'video', source: 'youtube' },
+  { title: 'Trilha de Aprendizagem ENAP - Seleção do Fornecedor', url: 'https://sites.google.com/enap.gov.br/trilha-de-contratacoes/selecao-do-fornecedor', type: 'curso', source: 'enap' },
+  // Gestão de Contrato
+  { title: 'Gestão e Fiscalização de Contratos Administrativos', url: 'https://www.escolavirtual.gov.br/curso/939', type: 'curso', source: 'escolavirtual' },
+  { title: 'Nova Lei de Licitações - Gestão Contratual', url: 'https://www.escolavirtual.gov.br/curso/440', type: 'curso', source: 'escolavirtual' },
+  { title: 'Praticando a Gestão e Fiscalização de Contratos Administrativos', url: 'https://suap.enap.gov.br/vitrine/curso/2079/?area=13', type: 'curso', source: 'enap' },
+  { title: 'Nova Lei de Licitações - Sanções ao Fornecedor', url: 'https://www.escolavirtual.gov.br/curso/441', type: 'curso', source: 'escolavirtual' },
+  { title: 'Trilha de Aprendizagem ENAP - Gestão do Contrato', url: 'https://sites.google.com/enap.gov.br/trilha-de-contratacoes/gestao-do-contrato', type: 'curso', source: 'enap' },
+];
+
+const insertCurso = db.prepare('INSERT OR IGNORE INTO resources (title, url, type, source) VALUES (?, ?, ?, ?)');
+for (const c of cursos) {
+  insertCurso.run(c.title, c.url, c.type, c.source);
+}
+console.log(`[cursos] ${cursos.length} cursos de capacitação adicionados`);
+
 // =================== CORRIGIR ACENTOS NAS CATEGORIAS (banco existente) ===================
 const catFixes = [
   [1, 'Planejamento', 'Planejamento de contratações públicas'],
