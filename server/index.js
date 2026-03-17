@@ -8,6 +8,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'forum-recpsp-secret-2024';
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || 'AIzaSyAv2d8fa8n13SdGc0SJHUT1D883jlB8bFg';
 
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'forum.db');
 const db = new Database(dbPath);
@@ -406,7 +407,7 @@ const defaultPlaylists = [
 ];
 
 async function importDefaultPlaylists() {
-  const API_KEY = process.env.YOUTUBE_API_KEY || 'AIzaSyAv2d8fa8n13SdGc0SJHUT1D883jlB8bFg';
+  const API_KEY = YOUTUBE_API_KEY;
   const existingCount = db.prepare('SELECT COUNT(*) as c FROM resources').get().c;
   if (existingCount > 0) return; // já importado
   const insert = db.prepare('INSERT OR IGNORE INTO resources (title, url, type, source, playlist_id) VALUES (?, ?, ?, ?, ?)');
@@ -468,8 +469,26 @@ for (const [oldName, newName] of tagFixes) {
 }
 
 // =================== MIDDLEWARES ===================
-app.use(cors());
+const ALLOWED_ORIGINS = [
+  'https://recpsp.onrender.com',
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
+app.use(cors({
+  origin: function(origin, callback) {
+    // Permitir requests sem origin (mobile apps, curl, server-side)
+    if (!origin) return callback(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    callback(new Error('Bloqueado pelo CORS'));
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: '5mb' }));
+
+// =================== HEALTH CHECK ===================
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 function auth(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
@@ -1211,7 +1230,7 @@ app.get('/api/topics/:id/related-resources', (req, res) => {
 app.post('/api/admin/resources/import-playlist', auth, adminOnly, async (req, res) => {
   const { playlist_id } = req.body;
   if (!playlist_id) return res.status(400).json({ error: 'playlist_id é obrigatório' });
-  const API_KEY = process.env.YOUTUBE_API_KEY || 'AIzaSyAv2d8fa8n13SdGc0SJHUT1D883jlB8bFg';
+  const API_KEY = YOUTUBE_API_KEY;
   try {
     let allItems = [];
     let nextPageToken = '';
@@ -1436,12 +1455,16 @@ app.put('/api/admin/topics/:id/reject', auth, (req, res) => {
   res.json({ ok: true });
 });
 
+// =================== ERROR HANDLER GLOBAL ===================
+app.use((err, req, res, next) => {
+  console.error('Erro não tratado:', err.message);
+  res.status(500).json({ error: 'Erro interno do servidor' });
+});
+
 // =================== SERVIR REACT BUILD ===================
-// Em producao, servir os arquivos estaticos do React
 const buildPath = path.join(__dirname, '..', 'build');
 app.use(express.static(buildPath));
 
-// Qualquer rota que nao seja /api, servir o index.html do React (SPA)
 app.get('{*path}', (req, res) => {
   res.sendFile(path.join(buildPath, 'index.html'));
 });
