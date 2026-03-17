@@ -183,7 +183,7 @@ export default function Category() {
               <Link to={`/user/${topic.user_id}`}>
                 <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition"
                   style={{ backgroundColor: getAvatarColor(topic.username) }}>
-                  {topic.username[0].toUpperCase()}
+                  {topic.username?.[0]?.toUpperCase() ?? '?'}
                 </div>
               </Link>
             </div>

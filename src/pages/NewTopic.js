@@ -671,7 +671,7 @@ export default function NewTopic() {
                         className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm"
                         style={{ backgroundColor: getAvatarColor(topic.username) }}
                       >
-                        {topic.username[0].toUpperCase()}
+                        {topic.username?.[0]?.toUpperCase() ?? '?'}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">

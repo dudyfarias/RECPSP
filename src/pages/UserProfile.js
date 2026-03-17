@@ -99,7 +99,7 @@ export default function UserProfile() {
             className="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-3xl mb-4"
             style={{ backgroundColor: getAvatarColor(profile.username) }}
           >
-            {profile.username[0].toUpperCase()}
+            {profile.username?.[0]?.toUpperCase() ?? '?'}
           </div>
           <h1 className="text-xl font-bold text-gray-800">{profile.username}</h1>
           <span className={`text-xs px-3 py-1 rounded-full font-medium mt-2 ${ROLE_STYLES[profile.role] || ROLE_STYLES.user}`}>

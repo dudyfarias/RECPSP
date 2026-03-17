@@ -13,6 +13,19 @@ import NewTopic from './pages/NewTopic';
 import UserProfile from './pages/UserProfile';
 import Messages from './pages/Messages';
 import Portal from './pages/Portal';
+import { Link } from 'react-router-dom';
+
+function NotFound() {
+  return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
+      <h1 className="text-6xl font-bold text-gray-300 mb-4">404</h1>
+      <p className="text-gray-500 text-lg mb-6">Página não encontrada</p>
+      <Link to="/" className="bg-red-500 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition">
+        Voltar ao Início
+      </Link>
+    </div>
+  );
+}
 
 const queryClient = new QueryClient();
 
@@ -36,6 +49,7 @@ function App() {
               <Route path="/user/:id" element={<UserProfile />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/messages/:userId" element={<Messages />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
         </BrowserRouter>

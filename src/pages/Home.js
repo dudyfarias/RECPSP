@@ -44,7 +44,7 @@ export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
   const sort = searchParams.get('sort') || '';
   const categoryFilter = searchParams.get('category') || '';
-  const [showGuestBanner, setShowGuestBanner] = useState(true);
+  const [showGuestBanner, setShowGuestBanner] = useState(() => sessionStorage.getItem('guestBannerDismissed') !== 'true');
 
   const { data: categories } = useQuery({
     queryKey: ['categories'],
@@ -158,7 +158,7 @@ export default function Home() {
                   <Link to="/register" className="text-sm px-4 py-1.5 rounded bg-red-500 hover:bg-red-600 transition font-medium">
                     Inscrever
                   </Link>
-                  <button onClick={() => setShowGuestBanner(false)} className="text-gray-400 hover:text-white ml-1 transition">
+                  <button onClick={() => { sessionStorage.setItem('guestBannerDismissed', 'true'); setShowGuestBanner(false); }} className="text-gray-400 hover:text-white ml-1 transition">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -178,7 +178,7 @@ export default function Home() {
                     className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition"
                     style={{ backgroundColor: getAvatarColor(topic.username) }}
                   >
-                    {topic.username[0].toUpperCase()}
+                    {topic.username?.[0]?.toUpperCase() ?? '?'}
                   </div>
                 </Link>
               </div>

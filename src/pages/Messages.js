@@ -170,7 +170,7 @@ function Conversation({ userId, token, currentUser }) {
               className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm"
               style={{ backgroundColor: getAvatarColor(otherUser.username) }}
             >
-              {otherUser.username[0].toUpperCase()}
+              {otherUser.username?.[0]?.toUpperCase() ?? '?'}
             </div>
             <span className="font-semibold text-gray-800 text-sm">{otherUser.username}</span>
           </Link>

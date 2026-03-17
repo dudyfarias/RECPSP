@@ -118,7 +118,7 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
             <p className="text-sm font-semibold text-gray-700 mb-2">Foto de Perfil</p>
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-pink-500 flex items-center justify-center text-white font-bold text-sm">
-                {form.username ? form.username[0].toUpperCase() : 'U'}
+                {form.username ? form.username?.[0]?.toUpperCase() ?? '?' : 'U'}
               </div>
               <button className="text-sm text-gray-600 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
                 Selecionar Foto
@@ -527,7 +527,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-2">
                   <Link to={`/user/${user.id}`}>
                     <div className="w-8 h-8 rounded-full bg-orange-400 flex items-center justify-center text-white font-bold text-xs">
-                      {user.username[0].toUpperCase()}
+                      {user.username?.[0]?.toUpperCase() ?? '?'}
                     </div>
                   </Link>
                   <span className="text-sm text-gray-700 font-medium hidden sm:block">{user.username}</span>

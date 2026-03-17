@@ -144,6 +144,7 @@ export default function Admin() {
   }
 
   async function handleDeleteResource(id) {
+    if (!window.confirm('Tem certeza que deseja remover este recurso?')) return;
     try {
       await apiFetch(`/admin/resources/${id}`, { method: 'DELETE' }, token);
       refetchResources();
@@ -159,6 +160,9 @@ export default function Admin() {
   });
 
   async function handleBan(userId) {
+    const user = users?.find(u => u.id === userId);
+    const action = user?.banned ? 'desbanir' : 'banir';
+    if (!window.confirm(`Tem certeza que deseja ${action} este usuário?`)) return;
     try { await apiFetch(`/admin/users/${userId}/ban`, { method: 'PUT' }, token); refetchUsers(); }
     catch (err) { alert(err.message); }
   }
@@ -378,7 +382,7 @@ export default function Admin() {
                     <td className="px-5 py-3">
                       <Link to={`/user/${u.id}`} className="flex items-center gap-2 hover:opacity-80 transition">
                         <div className="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-xs">
-                          {u.username[0].toUpperCase()}
+                          {u.username?.[0]?.toUpperCase() ?? '?'}
                         </div>
                         <span className="font-medium text-gray-800 hover:text-blue-600 transition">{u.username}</span>
                       </Link>

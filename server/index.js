@@ -217,7 +217,7 @@ if (!adminExists) {
     db.prepare('INSERT OR IGNORE INTO tags (name) VALUES (?)').run(tag);
   }
 
-  console.log('Admin criado: admin / admin123');
+  console.log('Admin inicial criado com sucesso');
   console.log('Categorias e tags iniciais criadas');
 
   // =================== DADOS DE TESTE (apenas em desenvolvimento) ===================
@@ -540,6 +540,7 @@ function adminOnly(req, res, next) {
 app.post('/api/auth/register', authLimiter, (req, res) => {
   const { username, email, password, organization, location, category_ids } = req.body;
   if (!username || !email || !password) return res.status(400).json({ error: 'Preencha todos os campos' });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Email inválido' });
   if (password.length < 6) return res.status(400).json({ error: 'Senha deve ter pelo menos 6 caracteres' });
   try {
     const hashed = bcrypt.hashSync(password, 10);
@@ -549,9 +550,10 @@ app.post('/api/auth/register', authLimiter, (req, res) => {
 
     // Salvar categorias de interesse se fornecidas
     if (Array.isArray(category_ids) && category_ids.length > 0) {
+      const validCatIds = db.prepare('SELECT id FROM categories').all().map(c => c.id);
       const insertCat = db.prepare('INSERT INTO user_categories (user_id, category_id) VALUES (?, ?)');
       for (const catId of category_ids) {
-        insertCat.run(userId, catId);
+        if (Number.isInteger(catId) && validCatIds.includes(catId)) insertCat.run(userId, catId);
       }
     }
 
@@ -621,10 +623,11 @@ app.put('/api/auth/categories', auth, (req, res) => {
   const { category_ids } = req.body;
   if (!Array.isArray(category_ids)) return res.status(400).json({ error: 'category_ids deve ser um array' });
 
+  const validCatIds = db.prepare('SELECT id FROM categories').all().map(c => c.id);
   db.prepare('DELETE FROM user_categories WHERE user_id = ?').run(req.user.id);
   const insert = db.prepare('INSERT INTO user_categories (user_id, category_id) VALUES (?, ?)');
   for (const catId of category_ids) {
-    insert.run(req.user.id, catId);
+    if (Number.isInteger(catId) && validCatIds.includes(catId)) insert.run(req.user.id, catId);
   }
 
   const cats = db.prepare(`
@@ -824,7 +827,8 @@ app.get('/api/topics', optionalAuth, (req, res) => {
       c.name as category_name, c.color as category_color,
       MAX(0, (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) - 1) as reply_count,
       (SELECT COUNT(*) FROM likes WHERE topic_id = t.id) as like_count,
-      COALESCE((SELECT MAX(p.created_at) FROM posts p WHERE p.topic_id = t.id), t.created_at) as last_activity
+      COALESCE((SELECT MAX(p.created_at) FROM posts p WHERE p.topic_id = t.id), t.created_at) as last_activity,
+      (SELECT GROUP_CONCAT(tg.name) FROM topic_tags tt JOIN tags tg ON tt.tag_id = tg.id WHERE tt.topic_id = t.id) as tag_names
     FROM topics t
     JOIN users u ON t.user_id = u.id
     JOIN categories c ON t.category_id = c.id
@@ -832,9 +836,9 @@ app.get('/api/topics', optionalAuth, (req, res) => {
     ${orderBy}
   `).all(...params);
 
-  const tagStmt = db.prepare('SELECT tg.name FROM topic_tags tt JOIN tags tg ON tt.tag_id = tg.id WHERE tt.topic_id = ?');
   for (const topic of topics) {
-    topic.tags = tagStmt.all(topic.id).map(t => t.name);
+    topic.tags = topic.tag_names ? topic.tag_names.split(',') : [];
+    delete topic.tag_names;
   }
 
   res.json(topics);
@@ -871,7 +875,8 @@ app.get('/api/categories/:id/topics', optionalAuth, (req, res) => {
       c.name as category_name, c.color as category_color,
       MAX(0, (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) - 1) as reply_count,
       (SELECT COUNT(*) FROM likes WHERE topic_id = t.id) as like_count,
-      COALESCE((SELECT MAX(p.created_at) FROM posts p WHERE p.topic_id = t.id), t.created_at) as last_activity
+      COALESCE((SELECT MAX(p.created_at) FROM posts p WHERE p.topic_id = t.id), t.created_at) as last_activity,
+      (SELECT GROUP_CONCAT(tg.name) FROM topic_tags tt JOIN tags tg ON tt.tag_id = tg.id WHERE tt.topic_id = t.id) as tag_names
     FROM topics t
     JOIN users u ON t.user_id = u.id
     JOIN categories c ON t.category_id = c.id
@@ -879,9 +884,9 @@ app.get('/api/categories/:id/topics', optionalAuth, (req, res) => {
     ${orderBy}
   `).all(...params);
 
-  const tagStmt = db.prepare('SELECT tg.name FROM topic_tags tt JOIN tags tg ON tt.tag_id = tg.id WHERE tt.topic_id = ?');
   for (const topic of topics) {
-    topic.tags = tagStmt.all(topic.id).map(t => t.name);
+    topic.tags = topic.tag_names ? topic.tag_names.split(',') : [];
+    delete topic.tag_names;
   }
   res.json(topics);
 });
@@ -889,6 +894,8 @@ app.get('/api/categories/:id/topics', optionalAuth, (req, res) => {
 app.post('/api/topics', auth, (req, res) => {
   const { title, category_id, content, tags, type, poll_options, image_url, video_url } = req.body;
   if (!title || !category_id || !content) return res.status(400).json({ error: 'Titulo, categoria e conteudo obrigatorios' });
+  if (title.length > 200) return res.status(400).json({ error: 'Título deve ter no máximo 200 caracteres' });
+  if (content.length > 50000) return res.status(400).json({ error: 'Conteúdo muito longo' });
 
   const user = db.prepare('SELECT banned FROM users WHERE id = ?').get(req.user.id);
   if (user?.banned) return res.status(403).json({ error: 'Sua conta foi banida' });
@@ -960,6 +967,8 @@ app.delete('/api/topics/:id', auth, (req, res) => {
   const topic = db.prepare('SELECT user_id FROM topics WHERE id = ?').get(req.params.id);
   if (!topic) return res.status(404).json({ error: 'Topico nao encontrado' });
   if (topic.user_id !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ error: 'Sem permissao' });
+  db.prepare('DELETE FROM poll_votes WHERE topic_id = ?').run(req.params.id);
+  db.prepare('DELETE FROM poll_options WHERE topic_id = ?').run(req.params.id);
   db.prepare('DELETE FROM topic_tags WHERE topic_id = ?').run(req.params.id);
   db.prepare('DELETE FROM likes WHERE topic_id = ?').run(req.params.id);
   db.prepare('DELETE FROM posts WHERE topic_id = ?').run(req.params.id);
@@ -972,9 +981,12 @@ app.delete('/api/topics/:id', auth, (req, res) => {
 app.post('/api/topics/:id/vote', auth, (req, res) => {
   const { option_id } = req.body;
   const topicId = parseInt(req.params.id);
+  if (req.user.banned) return res.status(403).json({ error: 'Usuário banido' });
 
-  const topic = db.prepare('SELECT type FROM topics WHERE id = ?').get(topicId);
+  const topic = db.prepare('SELECT type, locked, status FROM topics WHERE id = ?').get(topicId);
   if (!topic || topic.type !== 'poll') return res.status(400).json({ error: 'Este topico nao e uma votacao' });
+  if (topic.locked) return res.status(403).json({ error: 'Este tópico está bloqueado' });
+  if (topic.status !== 'approved') return res.status(403).json({ error: 'Este tópico não está aprovado' });
 
   const option = db.prepare('SELECT id FROM poll_options WHERE id = ? AND topic_id = ?').get(option_id, topicId);
   if (!option) return res.status(400).json({ error: 'Opcao invalida' });
@@ -998,8 +1010,21 @@ app.post('/api/topics/:id/vote', auth, (req, res) => {
 
 // =================== VIEWS ===================
 
+const viewedTopics = new Map(); // Map<"ip:topicId", timestamp>
 app.post('/api/topics/:id/view', (req, res) => {
-  db.prepare('UPDATE topics SET views = views + 1 WHERE id = ?').run(req.params.id);
+  const key = `${req.ip}:${req.params.id}`;
+  const now = Date.now();
+  const lastView = viewedTopics.get(key);
+  // Só conta view a cada 30 minutos por IP/tópico
+  if (!lastView || (now - lastView) > 30 * 60 * 1000) {
+    db.prepare('UPDATE topics SET views = views + 1 WHERE id = ?').run(req.params.id);
+    viewedTopics.set(key, now);
+    // Limpar entradas antigas a cada 1000 registros
+    if (viewedTopics.size > 1000) {
+      const cutoff = now - 30 * 60 * 1000;
+      for (const [k, v] of viewedTopics) { if (v < cutoff) viewedTopics.delete(k); }
+    }
+  }
   res.json({ ok: true });
 });
 
@@ -1116,10 +1141,12 @@ app.post('/api/posts', auth, (req, res) => {
 });
 
 app.put('/api/posts/:id', auth, (req, res) => {
+  const { content } = req.body;
+  if (!content || !content.trim()) return res.status(400).json({ error: 'Conteúdo não pode ser vazio' });
   const post = db.prepare('SELECT user_id FROM posts WHERE id = ?').get(req.params.id);
   if (!post) return res.status(404).json({ error: 'Post nao encontrado' });
   if (post.user_id !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ error: 'Sem permissao' });
-  db.prepare('UPDATE posts SET content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(req.body.content, req.params.id);
+  db.prepare('UPDATE posts SET content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(content.trim(), req.params.id);
   res.json({ ok: true });
 });
 
@@ -1189,7 +1216,7 @@ app.get('/api/topics/:id/related', (req, res) => {
       t.views,
       COALESCE((SELECT MAX(p.created_at) FROM posts p WHERE p.topic_id = t.id), t.created_at) as last_activity
     FROM topics t JOIN categories c ON t.category_id = c.id
-    WHERE t.id != ? ORDER BY RANDOM() LIMIT 5
+    WHERE t.id != ? AND t.status = 'approved' ORDER BY RANDOM() LIMIT 5
   `).all(req.params.id);
   res.json(related);
 });
@@ -1335,7 +1362,7 @@ app.delete('/api/admin/users/:id', auth, adminOnly, (req, res) => {
   if (!target) return res.status(404).json({ error: 'Usuario nao encontrado' });
   if (target.id === req.user.id) return res.status(400).json({ error: 'Nao e possivel deletar a si mesmo' });
 
-  try {
+  const deleteUser = db.transaction(() => {
     // Buscar todos os topicos do usuario para limpar dependencias
     const userTopics = db.prepare('SELECT id FROM topics WHERE user_id = ?').all(req.params.id);
     const topicIds = userTopics.map(t => t.id);
@@ -1397,7 +1424,10 @@ app.delete('/api/admin/users/:id', auth, adminOnly, (req, res) => {
 
     // Deletar o usuario
     db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id);
+  });
 
+  try {
+    deleteUser();
     res.json({ ok: true });
   } catch (err) {
     console.error('Erro ao deletar usuario:', err);

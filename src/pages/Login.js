@@ -56,9 +56,6 @@ export default function Login() {
           Não tem conta? <Link to="/register" className="text-red-500 font-medium hover:underline">Inscrever-se</Link>
         </p>
 
-        <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-400 text-center">
-          Admin: <strong>admin@forum.com</strong> / <strong>admin123</strong>
-        </div>
       </div>
     </div>
   );

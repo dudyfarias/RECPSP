@@ -113,7 +113,7 @@ function PostCard({ post, topic, isFirst, onDelete, onEdit, onLike, onDislike, o
           <Link to={`/user/${post.user_id}`}>
             <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition"
               style={{ backgroundColor: getAvatarColor(post.username) }}>
-              {post.username[0].toUpperCase()}
+              {post.username?.[0]?.toUpperCase() ?? '?'}
             </div>
           </Link>
         </div>
@@ -423,7 +423,7 @@ export default function Topic() {
         <Link to={`/user/${topic.user_id}`} className="flex-shrink-0">
           <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition"
             style={{ backgroundColor: getAvatarColor(topic.username) }}>
-            {topic.username[0].toUpperCase()}
+            {topic.username?.[0]?.toUpperCase() ?? '?'}
           </div>
         </Link>
         <div className="flex-1">
@@ -531,7 +531,7 @@ export default function Topic() {
               <Link key={u.id} to={`/user/${u.id}`} title={u.username}>
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs hover:opacity-80 transition"
                   style={{ backgroundColor: getAvatarColor(u.username) }}>
-                  {u.username[0].toUpperCase()}
+                  {u.username?.[0]?.toUpperCase() ?? '?'}
                 </div>
               </Link>
             ))}
@@ -599,11 +599,7 @@ export default function Topic() {
                 placeholder="Compartilhe sua experiência ou dúvida... (use **negrito**, *itálico*, > citação)"
                 rows={5}
               />
-              <div className="flex items-center justify-between mt-3">
-                <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
-                  <input type="checkbox" className="rounded border-gray-300" />
-                  Se inscrever nesse tópico
-                </label>
+              <div className="flex items-center justify-end mt-3">
                 <button type="submit"
                   className="bg-red-500 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition">
                   Responder
