@@ -59,7 +59,8 @@ export default function Portal() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center px-4 py-12">
       {/* Logo */}
       <div className="mb-10 text-center">
-        <img src="/logo-recpsp-escrito.svg" alt="RECPSP - Rede Estadual de Compras Públicas do Estado de São Paulo" className="h-32 mx-auto" />
+        {/* Para voltar ao logo estático: <img src="/logo-recpsp-escrito.svg" alt="RECPSP" className="h-32 mx-auto" /> */}
+        <img src="/gif-recpsp.gif" alt="RECPSP - Rede Estadual de Compras Públicas do Estado de São Paulo" className="h-32 mx-auto" />
       </div>
 
       {/* Cards */}
