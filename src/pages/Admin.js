@@ -91,6 +91,9 @@ export default function Admin() {
   const [addingResource, setAddingResource] = useState(false);
   const [addResourceMsg, setAddResourceMsg] = useState('');
   const [resourceFilter, setResourceFilter] = useState('all');
+  const [userSearch, setUserSearch] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('all');
+  const [userStatusFilter, setUserStatusFilter] = useState('all');
 
   useEffect(() => {
     if (user && user.role !== 'admin' && user.role !== 'moderator') navigate('/');
@@ -378,14 +381,108 @@ export default function Admin() {
       )}
 
       {/* ====== Aba Usuários (admin only) ====== */}
-      {activeTab === 'users' && user.role === 'admin' && (
+      {activeTab === 'users' && user.role === 'admin' && (() => {
+        const filteredUsers = users?.filter(u => {
+          if (userSearch) {
+            const q = userSearch.toLowerCase();
+            if (!u.username?.toLowerCase().includes(q) && !u.email?.toLowerCase().includes(q)) return false;
+          }
+          if (userRoleFilter !== 'all' && u.role !== userRoleFilter) return false;
+          if (userStatusFilter === 'active' && u.banned) return false;
+          if (userStatusFilter === 'banned' && !u.banned) return false;
+          return true;
+        }) || [];
+        return (
         <div className="bg-white rounded-lg border border-gray-200 overflow-visible">
-          <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Usuários ({users?.length || 0})
+          {/* Barra de filtros */}
+          <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Usuários ({filteredUsers.length}{filteredUsers.length !== (users?.length || 0) ? ` de ${users?.length}` : ''})
+              </span>
+              {/* Busca */}
+              <div className="relative">
+                <svg className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <input
+                  type="text"
+                  placeholder="Buscar por nome ou email..."
+                  value={userSearch}
+                  onChange={e => setUserSearch(e.target.value)}
+                  className="text-xs border border-gray-200 rounded-lg pl-8 pr-3 py-1.5 outline-none focus:border-blue-400 w-56"
+                />
+                {userSearch && (
+                  <button onClick={() => setUserSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-4 flex-wrap">
+              {/* Filtro por papel */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-gray-400">Papel:</span>
+                <div className="flex gap-1">
+                  {[
+                    { key: 'all', label: 'Todos' },
+                    { key: 'admin', label: 'Admin', style: 'bg-yellow-100 text-yellow-700' },
+                    { key: 'moderator', label: 'Moderador', style: 'bg-blue-100 text-blue-700' },
+                    { key: 'user', label: 'Usuário', style: 'bg-gray-100 text-gray-600' },
+                  ].map(f => (
+                    <button
+                      key={f.key}
+                      onClick={() => setUserRoleFilter(f.key)}
+                      className={`px-2.5 py-1 text-xs rounded-full font-medium transition ${
+                        userRoleFilter === f.key
+                          ? (f.key === 'all' ? 'bg-gray-700 text-white' : f.style + ' ring-2 ring-offset-1 ring-gray-300')
+                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Filtro por status */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-gray-400">Status:</span>
+                <div className="flex gap-1">
+                  {[
+                    { key: 'all', label: 'Todos' },
+                    { key: 'active', label: 'Ativos', style: 'bg-green-100 text-green-700' },
+                    { key: 'banned', label: 'Banidos', style: 'bg-red-100 text-red-700' },
+                  ].map(f => (
+                    <button
+                      key={f.key}
+                      onClick={() => setUserStatusFilter(f.key)}
+                      className={`px-2.5 py-1 text-xs rounded-full font-medium transition ${
+                        userStatusFilter === f.key
+                          ? (f.key === 'all' ? 'bg-gray-700 text-white' : f.style + ' ring-2 ring-offset-1 ring-gray-300')
+                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           {usersLoading ? (
             <div className="text-center py-8 text-gray-400 text-sm">Carregando...</div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="text-center py-12">
+              <svg className="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+              </svg>
+              <p className="text-sm text-gray-400">Nenhum usuário encontrado com esses filtros</p>
+              <button
+                onClick={() => { setUserSearch(''); setUserRoleFilter('all'); setUserStatusFilter('all'); }}
+                className="mt-2 text-xs text-blue-500 hover:text-blue-700 transition"
+              >
+                Limpar filtros
+              </button>
+            </div>
           ) : (
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
@@ -400,7 +497,7 @@ export default function Admin() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {users?.map(u => (
+                {filteredUsers.map(u => (
                   <tr key={u.id} className={u.banned ? 'bg-red-50' : 'hover:bg-gray-50'}>
                     <td className="px-5 py-3">
                       <Link to={`/user/${u.id}`} className="flex items-center gap-2 hover:opacity-80 transition">
@@ -490,7 +587,8 @@ export default function Admin() {
             </table>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {/* ====== Aba Capacitação (admin only) ====== */}
       {activeTab === 'resources' && user.role === 'admin' && (
