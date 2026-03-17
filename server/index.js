@@ -1360,6 +1360,22 @@ app.post('/api/admin/resources/import-playlist', auth, adminOnly, async (req, re
   }
 });
 
+// Adicionar recurso individual (curso, link, vídeo avulso)
+app.post('/api/admin/resources', auth, adminOnly, (req, res) => {
+  const { title, url, type, source } = req.body;
+  if (!title || !url) return res.status(400).json({ error: 'Título e URL são obrigatórios' });
+  const resourceType = type || (url.includes('youtube.com') || url.includes('youtu.be') ? 'video' : 'curso');
+  const resourceSource = source || (url.includes('youtube.com') || url.includes('youtu.be') ? 'youtube' : 'externo');
+  try {
+    const existing = db.prepare('SELECT id FROM resources WHERE url = ?').get(url);
+    if (existing) return res.status(409).json({ error: 'Este recurso já existe' });
+    const result = db.prepare('INSERT INTO resources (title, url, type, source) VALUES (?, ?, ?, ?)').run(title, url, resourceType, resourceSource);
+    res.json({ id: result.lastInsertRowid, title, url, type: resourceType, source: resourceSource });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.delete('/api/admin/resources/:id', auth, adminOnly, (req, res) => {
   db.prepare('DELETE FROM resources WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
