@@ -529,6 +529,8 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '5mb' }));
 
+const authUserByIdStmt = db.prepare('SELECT id, username, role, banned FROM users WHERE id = ?');
+
 // =================== SECURITY HEADERS ===================
 app.use(helmet({
   contentSecurityPolicy: false, // desativado para permitir inline scripts do React
@@ -553,7 +555,16 @@ function auth(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Token necessario' });
   try {
-    req.user = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const authUser = authUserByIdStmt.get(decoded.id);
+    if (!authUser) return res.status(401).json({ error: 'Usuario nao encontrado' });
+    if (authUser.banned) return res.status(403).json({ error: 'Sua conta foi banida' });
+    req.user = {
+      id: authUser.id,
+      username: authUser.username,
+      role: authUser.role,
+      banned: !!authUser.banned,
+    };
     next();
   } catch {
     res.status(401).json({ error: 'Token invalido' });
@@ -563,7 +574,18 @@ function auth(req, res, next) {
 function optionalAuth(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
   if (token) {
-    try { req.user = jwt.verify(token, JWT_SECRET); } catch {}
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const authUser = authUserByIdStmt.get(decoded.id);
+      if (authUser) {
+        req.user = {
+          id: authUser.id,
+          username: authUser.username,
+          role: authUser.role,
+          banned: !!authUser.banned,
+        };
+      }
+    } catch {}
   }
   next();
 }
@@ -700,16 +722,17 @@ app.get('/api/users/:id', (req, res) => {
 
 app.post('/api/messages', auth, (req, res) => {
   const { receiver_id, content } = req.body;
-  if (!receiver_id || !content || !content.trim()) return res.status(400).json({ error: 'Destinatario e conteudo obrigatorios' });
-  if (receiver_id === req.user.id) return res.status(400).json({ error: 'Nao e possivel enviar mensagem para si mesmo' });
-  const receiver = db.prepare('SELECT id FROM users WHERE id = ?').get(receiver_id);
+  const receiverId = Number(receiver_id);
+  if (!Number.isInteger(receiverId) || !content || !content.trim()) return res.status(400).json({ error: 'Destinatario e conteudo obrigatorios' });
+  if (receiverId === req.user.id) return res.status(400).json({ error: 'Nao e possivel enviar mensagem para si mesmo' });
+  const receiver = db.prepare('SELECT id FROM users WHERE id = ?').get(receiverId);
   if (!receiver) return res.status(404).json({ error: 'Destinatario nao encontrado' });
 
-  const result = db.prepare('INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)').run(req.user.id, receiver_id, content.trim());
+  const result = db.prepare('INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)').run(req.user.id, receiverId, content.trim());
 
   // Criar notificacao para o destinatario
   db.prepare('INSERT INTO notifications (user_id, type, content, reference_id) VALUES (?, ?, ?, ?)')
-    .run(receiver_id, 'message', `Nova mensagem de ${req.user.username}`, req.user.id);
+    .run(receiverId, 'message', `Nova mensagem de ${req.user.username}`, req.user.id);
 
   const msg = db.prepare('SELECT * FROM messages WHERE id = ?').get(result.lastInsertRowid);
   res.json(msg);
@@ -1033,7 +1056,8 @@ app.delete('/api/topics/:id', auth, (req, res) => {
 app.post('/api/topics/:id/vote', auth, (req, res) => {
   const { option_id } = req.body;
   const topicId = parseInt(req.params.id);
-  if (req.user.banned) return res.status(403).json({ error: 'Usuário banido' });
+  if (!Number.isInteger(topicId)) return res.status(400).json({ error: 'Topico invalido' });
+  if (req.user.banned) return res.status(403).json({ error: 'Usuario banido' });
 
   const topic = db.prepare('SELECT type, locked, status FROM topics WHERE id = ?').get(topicId);
   if (!topic || topic.type !== 'poll') return res.status(400).json({ error: 'Este topico nao e uma votacao' });
@@ -1083,6 +1107,9 @@ app.post('/api/topics/:id/view', (req, res) => {
 // =================== LIKES ===================
 
 app.post('/api/topics/:id/like', auth, (req, res) => {
+  const topic = db.prepare('SELECT id FROM topics WHERE id = ?').get(req.params.id);
+  if (!topic) return res.status(404).json({ error: 'Topico nao encontrado' });
+
   try {
     db.prepare('INSERT INTO likes (user_id, topic_id) VALUES (?, ?)').run(req.user.id, req.params.id);
     const count = db.prepare('SELECT COUNT(*) as c FROM likes WHERE topic_id = ?').get(req.params.id);
@@ -1183,8 +1210,24 @@ app.post('/api/posts', auth, (req, res) => {
   if (!content || !topic_id) return res.status(400).json({ error: 'Conteudo e topico obrigatorios' });
   const user = db.prepare('SELECT banned FROM users WHERE id = ?').get(req.user.id);
   if (user?.banned) return res.status(403).json({ error: 'Sua conta foi banida' });
-  const topic = db.prepare('SELECT locked FROM topics WHERE id = ?').get(topic_id);
+  const topic = db.prepare('SELECT locked, status, user_id FROM topics WHERE id = ?').get(topic_id);
   if (!topic) return res.status(404).json({ error: 'Topico nao encontrado' });
+
+  if (topic.status === 'pending') {
+    const isAuthor = req.user.id === topic.user_id;
+    const isAdminOrMod = req.user.role === 'admin' || req.user.role === 'moderator';
+    if (!isAuthor && !isAdminOrMod) {
+      return res.status(403).json({ error: 'Este tópico está em análise e não está disponível' });
+    }
+  }
+  if (topic.status === 'rejected') {
+    const isAuthor = req.user.id === topic.user_id;
+    const isAdminOrMod = req.user.role === 'admin' || req.user.role === 'moderator';
+    if (!isAuthor && !isAdminOrMod) {
+      return res.status(404).json({ error: 'Topico nao encontrado' });
+    }
+  }
+
   if (topic.locked && req.user.role !== 'admin') return res.status(403).json({ error: 'Este topico esta bloqueado' });
 
   const result = db.prepare('INSERT INTO posts (content, topic_id, user_id) VALUES (?, ?, ?)').run(content, topic_id, req.user.id);
@@ -1213,6 +1256,9 @@ app.delete('/api/posts/:id', auth, (req, res) => {
 // =================== POST LIKES ===================
 
 app.post('/api/posts/:id/like', auth, (req, res) => {
+  const post = db.prepare('SELECT id FROM posts WHERE id = ?').get(req.params.id);
+  if (!post) return res.status(404).json({ error: 'Post nao encontrado' });
+
   // Remove dislike se existir
   db.prepare('DELETE FROM post_dislikes WHERE user_id = ? AND post_id = ?').run(req.user.id, req.params.id);
   try {
@@ -1227,6 +1273,9 @@ app.post('/api/posts/:id/like', auth, (req, res) => {
 });
 
 app.post('/api/posts/:id/dislike', auth, (req, res) => {
+  const post = db.prepare('SELECT id FROM posts WHERE id = ?').get(req.params.id);
+  if (!post) return res.status(404).json({ error: 'Post nao encontrado' });
+
   // Remove like se existir
   db.prepare('DELETE FROM post_likes WHERE user_id = ? AND post_id = ?').run(req.user.id, req.params.id);
   try {
