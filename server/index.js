@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Database = require('better-sqlite3');
@@ -179,7 +181,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS resources (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
-    url TEXT NOT NULL,
+    url TEXT UNIQUE NOT NULL,
     type TEXT DEFAULT 'video',
     source TEXT DEFAULT 'youtube',
     playlist_id TEXT,
@@ -218,7 +220,10 @@ if (!adminExists) {
   console.log('Admin criado: admin / admin123');
   console.log('Categorias e tags iniciais criadas');
 
-  // =================== DADOS DE TESTE ===================
+  // =================== DADOS DE TESTE (apenas em desenvolvimento) ===================
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Modo produção: dados de teste não criados');
+  } else {
   const testPass = bcrypt.hashSync('teste123', 10);
   const testUsers = [
     ['MariaLicitacao', 'maria@teste.com', testPass, 'user', 'SP', 'Prefeitura de Sao Paulo'],
@@ -397,6 +402,7 @@ if (!adminExists) {
   }
 
   console.log('Dados de teste criados: 5 usuarios, 15 topicos, respostas, likes e votos');
+  } // fim do bloco de dados de teste
 }
 
 // =================== IMPORTAR PLAYLISTS PADRÃO ===================
@@ -485,6 +491,21 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '5mb' }));
 
+// =================== SECURITY HEADERS ===================
+app.use(helmet({
+  contentSecurityPolicy: false, // desativado para permitir inline scripts do React
+  crossOriginEmbedderPolicy: false, // permitir embeds do YouTube
+}));
+
+// =================== RATE LIMITING ===================
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 20, // máximo 20 tentativas de login/registro por IP
+  message: { error: 'Muitas tentativas. Tente novamente em 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // =================== HEALTH CHECK ===================
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -516,7 +537,7 @@ function adminOnly(req, res, next) {
 
 // =================== AUTH ===================
 
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', authLimiter, (req, res) => {
   const { username, email, password, organization, location, category_ids } = req.body;
   if (!username || !email || !password) return res.status(400).json({ error: 'Preencha todos os campos' });
   if (password.length < 6) return res.status(400).json({ error: 'Senha deve ter pelo menos 6 caracteres' });
@@ -543,7 +564,7 @@ app.post('/api/auth/register', (req, res) => {
   }
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', authLimiter, (req, res) => {
   const { email, password } = req.body;
   const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
   if (!user || !bcrypt.compareSync(password, user.password)) return res.status(401).json({ error: 'Email ou senha invalidos' });
