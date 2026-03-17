@@ -2,34 +2,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { getAvatarColor, timeAgo, formatTime } from '../utils/formatters';
 import { useState, useEffect, useRef } from 'react';
 
-const AVATAR_COLORS = ['#b45309', '#9333ea', '#dc2626', '#0d9488', '#2563eb', '#c026d3', '#ea580c', '#16a34a'];
-function getAvatarColor(name) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-
-function timeAgo(dateStr) {
-  if (!dateStr) return '';
-  const now = new Date();
-  const d = new Date(dateStr + 'Z');
-  const diff = Math.floor((now - d) / 1000);
-  if (diff < 60) return 'agora';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-  if (diff < 2592000) return `${Math.floor(diff / 86400)}d`;
-  return `${Math.floor(diff / 2592000)}mo`;
-}
-
-function formatTime(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr + 'Z');
-  return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-}
-
-function formatDate(dateStr) {
+function formatDateShort(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr + 'Z');
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
@@ -188,13 +164,13 @@ function Conversation({ userId, token, currentUser }) {
         {messages.map((msg, i) => {
           const isMine = msg.sender_id === currentUser.id;
           // Mostrar data se for o primeiro ou se mudou de dia
-          const showDate = i === 0 || formatDate(msg.created_at) !== formatDate(messages[i - 1].created_at);
+          const showDate = i === 0 || formatDateShort(msg.created_at) !== formatDateShort(messages[i - 1].created_at);
           return (
             <div key={msg.id}>
               {showDate && (
                 <div className="text-center my-3">
                   <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
-                    {formatDate(msg.created_at)}
+                    {formatDateShort(msg.created_at)}
                   </span>
                 </div>
               )}

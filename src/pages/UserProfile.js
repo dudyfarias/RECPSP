@@ -2,16 +2,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { getAvatarColor } from '../utils/formatters';
 import { useState } from 'react';
 
-const AVATAR_COLORS = ['#b45309', '#9333ea', '#dc2626', '#0d9488', '#2563eb', '#c026d3', '#ea580c', '#16a34a'];
-function getAvatarColor(name) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-
-function formatDate(dateStr) {
+function formatDateLong(dateStr) {
   if (!dateStr) return '';
   return new Date(dateStr).toLocaleDateString('pt-BR', { year: 'numeric', month: 'long', day: 'numeric' });
 }
@@ -156,7 +150,7 @@ export default function UserProfile() {
             </svg>
             <div>
               <p className="text-xs text-gray-400 uppercase font-medium">Membro desde</p>
-              <p className="text-sm text-gray-700">{formatDate(profile.created_at)}</p>
+              <p className="text-sm text-gray-700">{formatDateLong(profile.created_at)}</p>
             </div>
           </div>
 

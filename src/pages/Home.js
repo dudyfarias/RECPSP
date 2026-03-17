@@ -2,35 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { getAvatarColor, timeAgo, formatNumber } from '../utils/formatters';
 import { useState } from 'react';
-
-// Cores para os avatares
-const AVATAR_COLORS = [
-  '#b45309', '#9333ea', '#dc2626', '#0d9488', '#2563eb', '#c026d3', '#ea580c', '#16a34a',
-];
-
-function getAvatarColor(name) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-
-function timeAgo(dateStr) {
-  if (!dateStr) return '';
-  const now = new Date();
-  const d = new Date(dateStr + 'Z');
-  const diff = Math.floor((now - d) / 1000);
-  if (diff < 60) return 'agora';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-  if (diff < 2592000) return `${Math.floor(diff / 86400)}d`;
-  return `${Math.floor(diff / 2592000)}mo`;
-}
-
-function formatNumber(n) {
-  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
-  return String(n);
-}
 
 const SORT_OPTIONS = [
   { key: 'new', label: 'Novos' },
@@ -44,6 +17,7 @@ export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
   const sort = searchParams.get('sort') || '';
   const categoryFilter = searchParams.get('category') || '';
+  const page = parseInt(searchParams.get('page') || '1', 10);
   const [showGuestBanner, setShowGuestBanner] = useState(() => sessionStorage.getItem('guestBannerDismissed') !== 'true');
 
   const { data: categories } = useQuery({
@@ -51,21 +25,26 @@ export default function Home() {
     queryFn: () => apiFetch('/categories'),
   });
 
-  const { data: topics, isLoading, refetch } = useQuery({
-    queryKey: ['topics', sort, categoryFilter, !!token],
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['topics', sort, categoryFilter, page, !!token],
     queryFn: () => {
       const params = new URLSearchParams();
       if (sort) params.set('sort', sort);
       if (categoryFilter) params.set('category_id', categoryFilter);
+      if (page > 1) params.set('page', page);
       const qs = params.toString();
       return apiFetch(`/topics${qs ? `?${qs}` : ''}`, {}, token);
     },
   });
 
+  const topics = data?.topics;
+  const totalPages = data?.totalPages || 1;
+
   function handleSort(newSort) {
     const params = new URLSearchParams(searchParams);
     if (newSort) params.set('sort', newSort);
     else params.delete('sort');
+    params.delete('page');
     setSearchParams(params);
   }
 
@@ -73,7 +52,16 @@ export default function Home() {
     const params = new URLSearchParams(searchParams);
     if (catId) params.set('category', catId);
     else params.delete('category');
+    params.delete('page');
     setSearchParams(params);
+  }
+
+  function handlePageChange(newPage) {
+    const params = new URLSearchParams(searchParams);
+    if (newPage > 1) params.set('page', newPage);
+    else params.delete('page');
+    setSearchParams(params);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async function handleLock(topicId) {
@@ -147,7 +135,7 @@ export default function Home() {
 
         {topics?.map((topic, i) => (
           <div key={topic.id}>
-            {/* Banner de convidado - aparece depois do 5o tópico */}
+            {/* Banner de convidado - aparece depois do 5º tópico */}
             {i === 5 && !user && showGuestBanner && (
               <div className="flex items-center justify-between bg-gray-700 text-white px-5 py-3 -mx-0">
                 <span className="text-sm font-bold">Parece que você é novo aqui. Registre-se de graça, aprenda e contribua!</span>
@@ -261,6 +249,50 @@ export default function Home() {
           </div>
         ))}
       </div>
+
+      {/* Paginação */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 py-4 border-t border-gray-200">
+          <button
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page <= 1}
+            className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Anterior
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+            .reduce((acc, p, idx, arr) => {
+              if (idx > 0 && p - arr[idx - 1] > 1) acc.push('...');
+              acc.push(p);
+              return acc;
+            }, [])
+            .map((item, idx) =>
+              item === '...' ? (
+                <span key={`dot-${idx}`} className="px-2 text-gray-400 text-sm">...</span>
+              ) : (
+                <button
+                  key={item}
+                  onClick={() => handlePageChange(item)}
+                  className={`w-8 h-8 text-sm rounded-lg transition ${
+                    page === item
+                      ? 'bg-red-500 text-white font-bold'
+                      : 'border border-gray-200 text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {item}
+                </button>
+              )
+            )}
+          <button
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page >= totalPages}
+            className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Próximo
+          </button>
+        </div>
+      )}
     </div>
   );
 }

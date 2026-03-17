@@ -4,12 +4,7 @@ import { apiFetch } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState, useRef } from 'react';
 
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  return new Date(dateStr).toLocaleDateString('pt-BR');
-}
-
-function timeAgo(dateStr) {
+function timeAgoAdmin(dateStr) {
   if (!dateStr) return '';
   const now = new Date();
   const d = new Date(dateStr + 'Z');
@@ -18,7 +13,7 @@ function timeAgo(dateStr) {
   if (diff < 3600) return `${Math.floor(diff / 60)}m atrás`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;
   if (diff < 2592000) return `${Math.floor(diff / 86400)}d atrás`;
-  return formatDate(dateStr);
+  return new Date(dateStr).toLocaleDateString('pt-BR');
 }
 
 const ROLE_LABELS = {
@@ -296,7 +291,7 @@ export default function Admin() {
                       <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-400">
                         <span>por <Link to={`/user/${topic.user_id}`} className="font-medium text-gray-500 hover:text-blue-600">{topic.username}</Link></span>
                         <span>·</span>
-                        <span>{timeAgo(topic.created_at)}</span>
+                        <span>{timeAgoAdmin(topic.created_at)}</span>
                       </div>
 
                       {/* Preview do conteúdo */}
@@ -419,7 +414,7 @@ export default function Admin() {
                         {u.banned ? 'Banido' : 'Ativo'}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-gray-400 hidden sm:table-cell">{formatDate(u.created_at)}</td>
+                    <td className="px-5 py-3 text-gray-400 hidden sm:table-cell">{new Date(u.created_at).toLocaleDateString('pt-BR')}</td>
                     <td className="px-5 py-3">
                       {u.id !== user.id ? (
                         <div className="flex items-center justify-center gap-2">

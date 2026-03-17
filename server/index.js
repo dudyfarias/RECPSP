@@ -9,11 +9,24 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const JWT_SECRET = process.env.JWT_SECRET || 'forum-recpsp-secret-2024';
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || 'AIzaSyAv2d8fa8n13SdGc0SJHUT1D883jlB8bFg';
+if (!process.env.JWT_SECRET) console.warn('AVISO: JWT_SECRET não definido. Usando fallback inseguro. Defina JWT_SECRET nas variáveis de ambiente.');
+if (!process.env.YOUTUBE_API_KEY) console.warn('AVISO: YOUTUBE_API_KEY não definido. Importação de playlists pode falhar.');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-secret-change-in-production';
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || '';
 
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'forum.db');
 const db = new Database(dbPath);
+
+// Ativar verificação de foreign keys
+db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
+
+// Função SQL customizada para normalizar acentos
+db.function('normalize_text', (text) => {
+  if (!text) return '';
+  return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+});
 
 // =================== SCHEMA ===================
 db.exec(`
@@ -790,7 +803,9 @@ app.post('/api/tags', auth, adminOnly, (req, res) => {
 
 // Lista TODOS os topicos (home page estilo Discourse)
 app.get('/api/topics', optionalAuth, (req, res) => {
-  const { sort, category_id } = req.query;
+  const { sort, category_id, page } = req.query;
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const perPage = 20;
 
   let orderBy = 'ORDER BY t.pinned DESC, last_activity DESC';
   if (sort === 'new') orderBy = 'ORDER BY t.pinned DESC, t.created_at DESC';
@@ -822,6 +837,17 @@ app.get('/api/topics', optionalAuth, (req, res) => {
 
   const where = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
 
+  // Contar total para paginação
+  const countResult = db.prepare(`
+    SELECT COUNT(*) as total FROM topics t
+    JOIN users u ON t.user_id = u.id
+    JOIN categories c ON t.category_id = c.id
+    ${where}
+  `).get(...params);
+  const total = countResult.total;
+  const totalPages = Math.ceil(total / perPage);
+  const offset = (pageNum - 1) * perPage;
+
   const topics = db.prepare(`
     SELECT t.*, u.username,
       c.name as category_name, c.color as category_color,
@@ -834,14 +860,15 @@ app.get('/api/topics', optionalAuth, (req, res) => {
     JOIN categories c ON t.category_id = c.id
     ${where}
     ${orderBy}
-  `).all(...params);
+    LIMIT ? OFFSET ?
+  `).all(...params, perPage, offset);
 
   for (const topic of topics) {
     topic.tags = topic.tag_names ? topic.tag_names.split(',') : [];
     delete topic.tag_names;
   }
 
-  res.json(topics);
+  res.json({ topics, page: pageNum, totalPages, total });
 });
 
 app.get('/api/categories/:id/topics', optionalAuth, (req, res) => {
@@ -1226,22 +1253,19 @@ app.get('/api/topics/:id/related', (req, res) => {
 app.get('/api/search', (req, res) => {
   const { q } = req.query;
   if (!q || q.length < 2) return res.json({ topics: [], resources: [] });
-  // Normalizar busca removendo acentos para comparação
   const qNorm = q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const topics = db.prepare(`
     SELECT t.id, t.title, c.name as category_name, c.color as category_color
     FROM topics t JOIN categories c ON t.category_id = c.id
-  `).all();
-  const filteredTopics = topics.filter(t => {
-    const tNorm = t.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    return tNorm.includes(qNorm);
-  }).slice(0, 10);
-  const allResources = db.prepare(`SELECT id, title, url, type, source FROM resources`).all();
-  const filteredResources = allResources.filter(r => {
-    const rNorm = r.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    return rNorm.includes(qNorm);
-  }).slice(0, 5);
-  res.json({ topics: filteredTopics, resources: filteredResources });
+    WHERE normalize_text(t.title) LIKE ? AND t.status = 'approved'
+    LIMIT 10
+  `).all(`%${qNorm}%`);
+  const resources = db.prepare(`
+    SELECT id, title, url, type, source FROM resources
+    WHERE normalize_text(title) LIKE ?
+    LIMIT 5
+  `).all(`%${qNorm}%`);
+  res.json({ topics, resources });
 });
 
 // =================== RESOURCES ===================

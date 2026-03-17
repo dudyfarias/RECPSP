@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { useAuth } from '../context/AuthContext';
 import RichTextEditor from '../components/RichTextEditor';
+import { getAvatarColor, formatNumber } from '../utils/formatters';
 
 // ============= Topic Type Icons =============
 function DiscussionIcon({ active }) {
@@ -60,16 +61,6 @@ const TOPIC_TYPES = [
 ];
 
 // ============= Helpers =============
-const AVATAR_COLORS = ['#b45309', '#9333ea', '#dc2626', '#0d9488', '#2563eb', '#c026d3', '#ea580c', '#16a34a'];
-function getAvatarColor(name) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-function formatNumber(n) {
-  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
-  return String(n);
-}
 
 // ============= Helper: detectar embed de vídeo =============
 function getVideoEmbed(url) {
