@@ -36,7 +36,8 @@ function App() {
         <BrowserRouter>
           <div className="min-h-screen bg-gray-50">
             <Navbar />
-            <Routes>
+            <main>
+              <Routes>
               <Route path="/" element={<Portal />} />
               <Route path="/forum" element={<Home />} />
               <Route path="/login" element={<Login />} />
@@ -50,7 +51,8 @@ function App() {
               <Route path="/messages" element={<Messages />} />
               <Route path="/messages/:userId" element={<Messages />} />
               <Route path="*" element={<NotFound />} />
-            </Routes>
+              </Routes>
+            </main>
           </div>
         </BrowserRouter>
       </AuthProvider>

@@ -532,7 +532,7 @@ export default function Navbar() {
                 <Link to="/login" className="text-sm text-gray-600 hover:text-gray-900 transition font-medium px-3 py-1.5 rounded-lg border border-gray-300 hover:border-gray-400">
                   Entrar
                 </Link>
-                <Link to="/register" className="text-sm text-white font-semibold bg-red-500 hover:bg-red-600 px-4 py-1.5 rounded-lg transition">
+                <Link to="/register" className="text-sm text-white font-semibold bg-red-600 hover:bg-red-700 px-4 py-1.5 rounded-lg transition">
                   Inscrever
                 </Link>
               </>

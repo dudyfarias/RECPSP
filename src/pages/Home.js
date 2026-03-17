@@ -108,6 +108,7 @@ export default function Home() {
         <select
           value={categoryFilter}
           onChange={e => handleCategoryChange(e.target.value)}
+          aria-label="Filtrar por categoria"
           className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-red-300"
         >
           <option value="">Todas as Categorias</option>
@@ -143,10 +144,10 @@ export default function Home() {
                   <Link to="/login" className="text-sm px-4 py-1.5 rounded border border-gray-400 hover:bg-gray-600 transition">
                     Entrar
                   </Link>
-                  <Link to="/register" className="text-sm px-4 py-1.5 rounded bg-red-500 hover:bg-red-600 transition font-medium">
+                  <Link to="/register" className="text-sm px-4 py-1.5 rounded bg-red-600 hover:bg-red-700 transition font-medium">
                     Inscrever
                   </Link>
-                  <button onClick={() => { sessionStorage.setItem('guestBannerDismissed', 'true'); setShowGuestBanner(false); }} className="text-gray-400 hover:text-white ml-1 transition">
+                  <button onClick={() => { sessionStorage.setItem('guestBannerDismissed', 'true'); setShowGuestBanner(false); }} aria-label="Fechar banner" className="text-gray-400 hover:text-white ml-1 transition">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
