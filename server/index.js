@@ -233,10 +233,8 @@ if (!adminExists) {
   console.log('Admin inicial criado com sucesso');
   console.log('Categorias e tags iniciais criadas');
 
-  // =================== DADOS DE TESTE (apenas em desenvolvimento) ===================
-  if (process.env.NODE_ENV === 'production') {
-    console.log('Modo produção: dados de teste não criados');
-  } else {
+  // =================== DADOS INICIAIS DO FÓRUM ===================
+  {
   const testPass = bcrypt.hashSync('teste123', 10);
   const testUsers = [
     ['MariaLicitacao', 'maria@teste.com', testPass, 'user', 'SP', 'Prefeitura de Sao Paulo'],
@@ -414,8 +412,8 @@ if (!adminExists) {
     try { db.prepare('INSERT INTO poll_votes (user_id, option_id, topic_id) VALUES (?, ?, ?)').run(6, poll3Options[4].id, 14); } catch {}
   }
 
-  console.log('Dados de teste criados: 5 usuarios, 15 topicos, respostas, likes e votos');
-  } // fim do bloco de dados de teste
+  console.log('Dados iniciais criados: 5 usuarios, 15 topicos, respostas, likes e votos');
+  } // fim do bloco de dados iniciais
 }
 
 // =================== IMPORTAR PLAYLISTS PADRÃO ===================
