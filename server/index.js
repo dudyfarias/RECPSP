@@ -1159,16 +1159,22 @@ app.get('/api/topics/:id/related', (req, res) => {
 app.get('/api/search', (req, res) => {
   const { q } = req.query;
   if (!q || q.length < 2) return res.json({ topics: [], resources: [] });
+  // Normalizar busca removendo acentos para comparação
+  const qNorm = q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const topics = db.prepare(`
     SELECT t.id, t.title, c.name as category_name, c.color as category_color
     FROM topics t JOIN categories c ON t.category_id = c.id
-    WHERE t.title LIKE ? LIMIT 10
-  `).all(`%${q}%`);
-  const resources = db.prepare(`
-    SELECT id, title, url, type, source FROM resources
-    WHERE title LIKE ? LIMIT 5
-  `).all(`%${q}%`);
-  res.json({ topics, resources });
+  `).all();
+  const filteredTopics = topics.filter(t => {
+    const tNorm = t.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return tNorm.includes(qNorm);
+  }).slice(0, 10);
+  const allResources = db.prepare(`SELECT id, title, url, type, source FROM resources`).all();
+  const filteredResources = allResources.filter(r => {
+    const rNorm = r.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return rNorm.includes(qNorm);
+  }).slice(0, 5);
+  res.json({ topics: filteredTopics, resources: filteredResources });
 });
 
 // =================== RESOURCES ===================
@@ -1187,22 +1193,17 @@ app.get('/api/topics/:id/related-resources', (req, res) => {
     .split(/\s+/)
     .filter(w => w.length >= 3 && !stopwords.includes(w));
   if (words.length === 0) return res.json([]);
-  // Buscar todos os resources que contenham alguma palavra-chave
-  const conditions = words.map(() => 'LOWER(title) LIKE ?').join(' OR ');
-  const params = words.map(w => `%${w}%`);
-  const candidates = db.prepare(`
-    SELECT id, title, url, type, source FROM resources
-    WHERE ${conditions}
-  `).all(...params);
-  // Pontuar cada resource por quantidade de palavras-chave encontradas
-  const scored = candidates.map(r => {
+  // Buscar todos os resources e pontuar por palavras-chave (com normalização de acentos)
+  const allResources = db.prepare(`SELECT id, title, url, type, source FROM resources`).all();
+  const scored = [];
+  for (const r of allResources) {
     const rTitle = r.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     let score = 0;
     for (const w of words) {
       if (rTitle.includes(w)) score += 1;
     }
-    return { ...r, score };
-  });
+    if (score > 0) scored.push({ ...r, score });
+  }
   scored.sort((a, b) => b.score - a.score);
   res.json(scored.slice(0, 5));
 });
