@@ -606,7 +606,10 @@ export default function NewTopic() {
           .split(/\s+/)
           .filter(w => w.length >= 3 && !stopwords.includes(w));
 
-        const scored = (allTopics || []).map(t => {
+        // Compatibilidade: /topics pode retornar array (antigo) ou objeto paginado { topics, ... }.
+        const topicList = Array.isArray(allTopics) ? allTopics : (allTopics?.topics || []);
+
+        const scored = topicList.map(t => {
           let score = 0;
           // Pontuação por palavras-chave do título (peso 3 cada)
           if (titleWords.length > 0) {
