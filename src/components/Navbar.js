@@ -340,10 +340,39 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div className="sticky top-0 z-50">
+        {/* Institutional top bar */}
+        <div style={{ backgroundColor: '#1a1a1a' }}>
+          <div className="max-w-6xl mx-auto px-4 h-8 flex items-center justify-end gap-5">
+            {[
+              { label: 'Ouvidoria', href: 'https://www.ouvidoria.sp.gov.br' },
+              { label: 'Transparência', href: 'https://www.transparencia.sp.gov.br' },
+              { label: 'SIC', href: 'https://www.sic.sp.gov.br' },
+              { label: 'Acesso à Informação', href: 'https://www.transparencia.sp.gov.br/acesso-a-informacao' },
+            ].map(link => (
+              <a
+                key={link.label}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs transition-colors"
+                style={{ color: '#9aa8c4' }}
+                onMouseEnter={e => e.target.style.color = '#ffffff'}
+                onMouseLeave={e => e.target.style.color = '#9aa8c4'}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Primary nav */}
+        <nav className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-6">
           {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
+          <Link to="/" className="flex-shrink-0 flex items-center gap-3">
+            <img src="/sp-gov-br-horizontal.png" alt="Governo do Estado de São Paulo" className="h-7" />
+            <div className="w-px h-6 bg-gray-300 flex-shrink-0" />
             <img src="/logo-recpsp.svg" alt="RECPSP" className="h-9" />
           </Link>
 
@@ -351,17 +380,16 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-5 text-sm text-gray-600 flex-shrink-0 whitespace-nowrap">
             {isInForum ? (
               <>
-                <Link to="/forum" className="hover:text-gray-900 transition">Fórum</Link>
-                <Link to="/categories" className="hover:text-gray-900 transition">Categoria</Link>
-                {/* <Link to="/forum?sort=top" className="hover:text-gray-900 transition">Destaques</Link> */}
-                <Link to="/new-topic" className="hover:text-gray-900 transition">Novo</Link>
+                <Link to="/forum" className="transition hover:text-[#034EA2]">Fórum</Link>
+                <Link to="/categories" className="transition hover:text-[#034EA2]">Categoria</Link>
+                <Link to="/new-topic" className="transition hover:text-[#034EA2]">Novo</Link>
               </>
             ) : (
               <>
-                <Link to="/forum" className="hover:text-gray-900 transition">Fórum</Link>
-                <a href="https://compras.sp.gov.br/agente-publico/toolkits-documentos-padronizados/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition">Modelos de Documentos</a>
-                <a href="https://vademecum.lablogsp.org" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition">Vade Mecum</a>
-                <a href="https://compras.sp.gov.br/agente-publico/capacitacao/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition">Capacitação</a>
+                <Link to="/forum" className="transition hover:text-[#034EA2]">Fórum</Link>
+                <a href="https://compras.sp.gov.br/agente-publico/toolkits-documentos-padronizados/" target="_blank" rel="noopener noreferrer" className="transition hover:text-[#034EA2]">Modelos de Documentos</a>
+                <a href="https://vademecum.lablogsp.org" target="_blank" rel="noopener noreferrer" className="transition hover:text-[#034EA2]">Vade Mecum</a>
+                <a href="https://compras.sp.gov.br/agente-publico/capacitacao/" target="_blank" rel="noopener noreferrer" className="transition hover:text-[#034EA2]">Capacitação</a>
               </>
             )}
           </div>
@@ -535,17 +563,27 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link to="/login" className="text-sm text-gray-600 hover:text-gray-900 transition font-medium px-3 py-1.5 rounded-lg border border-gray-300 hover:border-gray-400">
+                <Link
+                  to="/login"
+                  className="text-sm font-medium px-3 py-1.5 rounded border transition"
+                  style={{ color: '#034EA2', borderColor: '#034EA2' }}
+                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#034EA2'; e.currentTarget.style.color = '#ffffff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#034EA2'; }}
+                >
                   Entrar
                 </Link>
-                <Link to="/register" className="text-sm text-white font-semibold bg-red-600 hover:bg-red-700 px-4 py-1.5 rounded-lg transition">
+                <Link to="/register" className="text-sm text-white font-semibold px-4 py-1.5 rounded transition" style={{ backgroundColor: '#FF161F' }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#CC111A'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = '#FF161F'}
+                >
                   Inscrever
                 </Link>
               </>
             )}
           </div>
         </div>
-      </nav>
+        </nav>
+      </div>
 
       {/* Profile Settings Overlay */}
       {showSettings && user && (
