@@ -371,7 +371,7 @@ export default function Navbar() {
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-6">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0 flex items-center gap-3">
-            <img src="/sp-gov-br-horizontal.png" alt="Governo do Estado de São Paulo" className="h-7" />
+            <img src="/brasao-sp.svg" alt="Governo do Estado de São Paulo" className="h-9" />
             <div className="w-px h-6 bg-gray-300 flex-shrink-0" />
             <img src="/logo-recpsp.svg" alt="RECPSP" className="h-9" />
           </Link>

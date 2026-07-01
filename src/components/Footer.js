@@ -8,10 +8,10 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-4 mb-5">
               <img
-                src="/sp-gov-br-horizontal-transparente.png"
+                src="/brasao-sp.svg"
                 alt="Governo do Estado de São Paulo"
-                className="h-6"
-                style={{ filter: 'brightness(0) invert(1)', opacity: 0.9 }}
+                className="h-10"
+                style={{ filter: 'brightness(0) invert(1)', opacity: 0.85 }}
               />
               <div className="w-px h-5 flex-shrink-0" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }} />
               <img
