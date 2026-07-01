@@ -121,15 +121,6 @@ export default function Portal() {
     <div className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center px-4 py-16">
       {/* Hero */}
       <div className="text-center mb-12 max-w-xl">
-        {/* Eyebrow */}
-        <div className="inline-flex items-center gap-2 mb-5">
-          <div className="w-6 h-px" style={{ backgroundColor: '#FF161F' }} />
-          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#FF161F' }}>
-            Governo do Estado de São Paulo
-          </span>
-          <div className="w-6 h-px" style={{ backgroundColor: '#FF161F' }} />
-        </div>
-
         <img
           src="/gif-recpsp.gif"
           alt="RECPSP — Rede Estadual de Compras Públicas de São Paulo"
@@ -139,13 +130,6 @@ export default function Portal() {
         <p className="text-sm text-gray-500 leading-relaxed">
           Plataforma integrada de apoio às contratações públicas do Estado de São Paulo.
         </p>
-      </div>
-
-      {/* Section divider */}
-      <div className="flex items-center gap-4 mb-8 w-full max-w-2xl">
-        <div className="flex-1 h-px bg-gray-200" />
-        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Acesse os módulos</span>
-        <div className="flex-1 h-px bg-gray-200" />
       </div>
 
       {/* Cards */}

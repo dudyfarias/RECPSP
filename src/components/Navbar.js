@@ -274,6 +274,7 @@ export default function Navbar() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const isInForum = location.pathname.startsWith('/forum') || location.pathname.startsWith('/topic') || location.pathname.startsWith('/category') || location.pathname.startsWith('/categories') || location.pathname.startsWith('/new-topic');
+  const isHome = location.pathname === '/';
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -378,6 +379,14 @@ export default function Navbar() {
 
           {/* Nav links */}
           <div className="hidden md:flex items-center gap-5 text-sm text-gray-600 flex-shrink-0 whitespace-nowrap">
+            {!isHome && (
+              <Link to="/" className="flex items-center gap-1.5 transition hover:text-[#034EA2]">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Início
+              </Link>
+            )}
             {isInForum ? (
               <>
                 <Link to="/forum" className="transition hover:text-[#034EA2]">Fórum</Link>
