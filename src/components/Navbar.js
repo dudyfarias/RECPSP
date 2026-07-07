@@ -393,7 +393,7 @@ export default function Navbar() {
                 <Link to="/forum" className="transition hover:text-[#034EA2]">Fórum</Link>
                 <a href="https://compras.sp.gov.br/agente-publico/toolkits-documentos-padronizados/" target="_blank" rel="noopener noreferrer" className="transition hover:text-[#034EA2]">Modelos de Documentos</a>
                 <a href="https://vademecum.lablogsp.org" target="_blank" rel="noopener noreferrer" className="transition hover:text-[#034EA2]">Vade Mecum</a>
-                <a href="https://compras.sp.gov.br/agente-publico/capacitacao/" target="_blank" rel="noopener noreferrer" className="transition hover:text-[#034EA2]">Capacitação</a>
+                <Link to="/capacitacao" className="transition hover:text-[#034EA2]">Capacitação</Link>
               </>
             )}
           </div>

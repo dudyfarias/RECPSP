@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export default function Footer() {
   return (
     <footer style={{ backgroundColor: '#1a1a1a' }}>
@@ -68,20 +70,32 @@ export default function Footer() {
                 { label: 'Compras SP', href: 'https://compras.sp.gov.br' },
                 { label: 'Modelos de Documentos', href: 'https://compras.sp.gov.br/agente-publico/toolkits-documentos-padronizados/' },
                 { label: 'Vade Mecum Licitações', href: 'https://vademecum.lablogsp.org' },
-                { label: 'Capacitação', href: 'https://compras.sp.gov.br/agente-publico/capacitacao/' },
+                { label: 'Capacitação', to: '/capacitacao' },
               ].map(link => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs transition-colors"
-                    style={{ color: '#9aa8c4' }}
-                    onMouseEnter={e => e.target.style.color = '#ffffff'}
-                    onMouseLeave={e => e.target.style.color = '#9aa8c4'}
-                  >
-                    {link.label}
-                  </a>
+                  {link.to ? (
+                    <Link
+                      to={link.to}
+                      className="text-xs transition-colors"
+                      style={{ color: '#9aa8c4' }}
+                      onMouseEnter={e => e.target.style.color = '#ffffff'}
+                      onMouseLeave={e => e.target.style.color = '#9aa8c4'}
+                    >
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs transition-colors"
+                      style={{ color: '#9aa8c4' }}
+                      onMouseEnter={e => e.target.style.color = '#ffffff'}
+                      onMouseLeave={e => e.target.style.color = '#9aa8c4'}
+                    >
+                      {link.label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>

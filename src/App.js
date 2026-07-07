@@ -14,6 +14,7 @@ import NewTopic from './pages/NewTopic';
 import UserProfile from './pages/UserProfile';
 import Messages from './pages/Messages';
 import Portal from './pages/Portal';
+import Capacitacao from './pages/Capacitacao';
 import { Link } from 'react-router-dom';
 
 function NotFound() {
@@ -51,6 +52,7 @@ function App() {
               <Route path="/user/:id" element={<UserProfile />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/messages/:userId" element={<Messages />} />
+              <Route path="/capacitacao" element={<Capacitacao />} />
               <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
