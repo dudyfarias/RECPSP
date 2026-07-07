@@ -857,6 +857,84 @@ function RecomendacaoSection({ onVerTrilha }) {
   );
 }
 
+function BibliotecaDigital() {
+  return (
+    <section id="biblioteca" className="mb-16 scroll-mt-24">
+      <div
+        className="gov-reveal bg-white border border-gray-200 rounded-xl shadow-card overflow-hidden flex flex-col md:flex-row"
+        style={{ borderTop: '3px solid #034EA2' }}
+      >
+        {/* Ilustração de biblioteca */}
+        <div
+          className="flex items-center justify-center p-8 md:w-56 flex-shrink-0"
+          style={{ backgroundColor: 'rgba(3,78,162,0.04)' }}
+        >
+          <div
+            className="w-20 h-20 rounded-2xl flex items-center justify-center"
+            style={{ backgroundColor: 'rgba(3,78,162,0.10)', color: '#034EA2' }}
+          >
+            <Icon className="w-10 h-10">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332a48.36 48.36 0 00-15 0V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+            </Icon>
+          </div>
+        </div>
+
+        {/* Conteúdo */}
+        <div className="p-6 sm:p-8 flex-1">
+          <div className="flex items-center gap-2 flex-wrap mb-2">
+            <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#034EA2' }}>
+              Base de conhecimento
+            </span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full text-gray-500 bg-gray-100">
+              <Icon className="w-3 h-3">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </Icon>
+              Sistema externo
+            </span>
+          </div>
+
+          <h2 className="font-montserrat text-2xl font-bold text-gray-900 mb-2">
+            Biblioteca Digital de Logística Pública
+          </h2>
+          <p className="text-sm text-gray-600 leading-relaxed mb-6 max-w-2xl">
+            A Biblioteca Digital de Logística Pública reúne materiais técnicos, acadêmicos, normativos
+            e institucionais sobre contratações públicas, inovação, sustentabilidade, governança e
+            logística pública. O ambiente apoia servidores, pesquisadores e gestores no acesso ao
+            conhecimento, fortalecendo a aprendizagem contínua e a tomada de decisão baseada em evidências.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* TODO: substituir pelo link oficial da Biblioteca Digital de Logística Pública. */}
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+            <a
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-white font-semibold px-5 py-2.5 rounded transition hover:opacity-90"
+              style={{ backgroundColor: '#034EA2' }}
+            >
+              Acessar biblioteca
+              <Icon className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </Icon>
+            </a>
+            {/* TODO: substituir pelo link oficial da Biblioteca Digital de Logística Pública. */}
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+            <a
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded border border-[#034EA2] text-[#034EA2] transition hover:bg-[#034EA2] hover:text-white"
+            >
+              Conhecer materiais
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Capacitacao() {
   const [selectedTrilha, setSelectedTrilha] = useState(null);
 
@@ -1025,6 +1103,9 @@ export default function Capacitacao() {
           ))}
         </div>
       </section>
+
+      {/* Biblioteca Digital de Logística Pública */}
+      <BibliotecaDigital />
 
       {/* Instituições Parceiras */}
       <section id="instituicoes" className="mb-16 scroll-mt-24">
