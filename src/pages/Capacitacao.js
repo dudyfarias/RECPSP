@@ -339,7 +339,7 @@ function recomendar(texto) {
 
 function Icon({ children, className }) {
   return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" aria-hidden="true" focusable="false">
       {children}
     </svg>
   );
@@ -467,9 +467,10 @@ function TrilhaCard({ trilha, index, isSelected, onSelect }) {
           </span>
         </div>
         <button
+          type="button"
           onClick={onSelect}
           aria-expanded={isSelected}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold transition hover:opacity-80"
           style={{ color: trilha.accent }}
         >
           Ver trilha
@@ -662,7 +663,7 @@ function MaterialCard({ material, index }) {
         href={PORTAL_OFICIAL}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold transition hover:opacity-80"
         style={{ color: material.accent }}
       >
         Acessar material
@@ -812,7 +813,7 @@ function RecomendacaoSection({ onVerTrilha }) {
         </div>
 
         {resultado && (
-          <div className="mt-7 pt-7 border-t border-gray-100">
+          <div className="mt-7 pt-7 border-t border-gray-100" aria-live="polite">
             <div
               className="gov-reveal rounded-lg border p-5"
               style={{ borderColor: resultado.accent, backgroundColor: `${resultado.accent}08` }}
@@ -838,6 +839,7 @@ function RecomendacaoSection({ onVerTrilha }) {
               </div>
 
               <button
+                type="button"
                 onClick={() => onVerTrilha(resultado.trilhaId)}
                 className="mt-5 inline-flex items-center gap-1.5 text-sm text-white font-semibold px-4 py-2 rounded transition hover:opacity-90"
                 style={{ backgroundColor: resultado.accent }}
@@ -859,7 +861,8 @@ export default function Capacitacao() {
   const [selectedTrilha, setSelectedTrilha] = useState(null);
 
   const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById(id)?.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
   };
 
   const handleSelectTrilha = (id) => {
@@ -875,7 +878,7 @@ export default function Capacitacao() {
   return (
     <div className="max-w-6xl mx-auto px-4 pb-16">
       {/* Breadcrumb */}
-      <div className="text-sm text-gray-500 mt-4 mb-4 px-1">
+      <div className="text-sm text-gray-500 mt-4 mb-4">
         <Link to="/" className="hover:text-[#034EA2]">Início</Link>
         <span className="mx-2 text-gray-300">/</span>
         <span className="font-medium text-gray-700">Capacitação</span>
