@@ -245,6 +245,98 @@ const materiais = [
   { tipo: 'Webinar', titulo: 'Webinar sobre IA aplicada às Contratações', tema: 'Inovação', descricao: 'Gravação com casos de uso de IA nas contratações e os cuidados necessários.', accent: '#034EA2' },
 ];
 
+const instituicoes = [
+  { sigla: 'SGGD', nome: 'Secretaria de Gestão e Governo Digital', descricao: 'Coordena a política de compras e a transformação digital do Estado.', accent: '#FF161F' },
+  { sigla: 'LILP', nome: 'Laboratório de Inovação em Licitações Públicas', descricao: 'Pesquisa e prototipa soluções para modernizar as contratações públicas.', accent: '#034EA2' },
+  { sigla: 'USP', nome: 'Universidade de São Paulo', descricao: 'Produção acadêmica e formação de alto nível em administração pública.', accent: '#0B9247' },
+  { sigla: 'UNESP', nome: 'Universidade Estadual Paulista', descricao: 'Pesquisa aplicada e extensão universitária em gestão pública.', accent: '#233254' },
+  { sigla: 'UNICAMP', nome: 'Universidade Estadual de Campinas', descricao: 'Estudos e capacitação em inovação e políticas públicas.', accent: '#4297D3' },
+  { sigla: 'EGESP', nome: 'Escola de Governo do Estado de São Paulo', descricao: 'Capacitação e desenvolvimento de servidores públicos estaduais.', accent: '#94AA5A' },
+  { sigla: 'ENAP', nome: 'Escola Nacional de Administração Pública', descricao: 'Cursos e trilhas de referência nacional em contratações públicas.', accent: '#FF161F' },
+  { sigla: 'TCESP', nome: 'Tribunal de Contas do Estado de São Paulo', descricao: 'Orientação e controle externo das contratações estaduais.', accent: '#034EA2' },
+  { sigla: 'PGE/SP', nome: 'Procuradoria Geral do Estado de São Paulo', descricao: 'Assessoria jurídica e segurança normativa nas contratações.', accent: '#233254' },
+];
+
+const certificados = [
+  { curso: 'Lei nº 14.133/2021', data: '12/03/2026', accent: '#FF161F' },
+  { curso: 'Plano de Contratações Anual', data: '28/03/2026', accent: '#034EA2' },
+  { curso: 'Linguagem Simples', data: '15/04/2026', accent: '#4297D3' },
+  { curso: 'Compras Sustentáveis', data: '30/04/2026', accent: '#0B9247' },
+  { curso: 'Inteligência Artificial aplicada às Contratações', data: '20/05/2026', accent: '#233254' },
+];
+
+const RECOMENDACOES = {
+  fiscal: {
+    titulo: 'Fiscal de Contratos',
+    trilhaId: 'fiscal-contratos',
+    accent: '#4297D3',
+    motivo: 'Você mencionou atuação como fiscal — esta trilha foca na fiscalização técnica e administrativa da execução contratual.',
+    cursos: ['Papel do fiscal de contratos', 'Fiscalização técnica e administrativa', 'Registro de ocorrências e medição', 'Aplicação de penalidades'],
+  },
+  agente: {
+    titulo: 'Agente de Contratação',
+    trilhaId: 'agente-contratacao',
+    accent: '#FF161F',
+    motivo: 'Identificamos o perfil de agente de contratação — a trilha cobre todo o processo sob a Lei nº 14.133/2021.',
+    cursos: ['Fundamentos da Lei nº 14.133/2021', 'Planejamento da contratação', 'Termo de Referência', 'Seleção do fornecedor'],
+  },
+  pregoeiro: {
+    titulo: 'Pregoeiro',
+    trilhaId: 'pregoeiro',
+    accent: '#034EA2',
+    motivo: 'Você citou o pregão — esta trilha prepara para conduzir a modalidade do edital à adjudicação.',
+    cursos: ['Modalidade Pregão na prática', 'Elaboração do edital', 'Julgamento de propostas', 'Recursos e adjudicação'],
+  },
+  sustentabilidade: {
+    titulo: 'Compras Sustentáveis',
+    trilhaId: 'compras-sustentaveis',
+    accent: '#0B9247',
+    motivo: 'Seu interesse em sustentabilidade se conecta com os critérios ESG aplicados às contratações.',
+    cursos: ['Fundamentos das compras sustentáveis', 'Critérios ESG em licitações', 'Especificações e rótulos ambientais', 'Economia circular'],
+  },
+  ia: {
+    titulo: 'Inteligência Artificial aplicada às Compras Públicas',
+    trilhaId: null,
+    accent: '#034EA2',
+    motivo: 'Você demonstrou interesse em inteligência artificial — reunimos conteúdos sobre IA nas contratações.',
+    cursos: ['IA aplicada às contratações', 'Automação de processos de compra', 'Ética e governança de dados', 'Casos de uso no setor público'],
+  },
+  planejamento: {
+    titulo: 'Equipe de Planejamento',
+    trilhaId: 'equipe-planejamento',
+    accent: '#0B9247',
+    motivo: 'Você citou planejamento/PCA — esta trilha estrutura toda a fase de planejamento das contratações.',
+    cursos: ['Plano de Contratações Anual (PCA)', 'Levantamento de necessidades', 'Estudo Técnico Preliminar', 'Pesquisa de Preços'],
+  },
+  municipal: {
+    titulo: 'Servidor Municipal',
+    trilhaId: 'servidor-municipal',
+    accent: '#94AA5A',
+    motivo: 'Para o contexto municipal, indicamos uma trilha introdutória às contratações públicas.',
+    cursos: ['Introdução às contratações públicas', 'Fundamentos da Lei nº 14.133/2021', 'Governança nas contratações', 'Linguagem Simples'],
+  },
+  gestor: {
+    titulo: 'Gestor Público',
+    trilhaId: 'gestor-publico',
+    accent: '#233254',
+    motivo: 'Não identificamos um perfil específico, então sugerimos uma visão estratégica e abrangente das contratações.',
+    cursos: ['Governança e liderança nas contratações', 'Planejamento estratégico de compras', 'Gestão de riscos institucional', 'Indicadores e resultados'],
+  },
+};
+
+function recomendar(texto) {
+  const t = (texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const tokens = t.split(/[^a-z0-9]+/).filter(Boolean);
+  if (t.includes('fiscal')) return RECOMENDACOES.fiscal;
+  if (t.includes('agente')) return RECOMENDACOES.agente;
+  if (t.includes('pregoeiro') || t.includes('pregao')) return RECOMENDACOES.pregoeiro;
+  if (t.includes('sustentab')) return RECOMENDACOES.sustentabilidade;
+  if (t.includes('inteligencia artificial') || t.includes('inteligencia') || tokens.includes('ia')) return RECOMENDACOES.ia;
+  if (t.includes('pca') || t.includes('planejamento')) return RECOMENDACOES.planejamento;
+  if (t.includes('municip')) return RECOMENDACOES.municipal;
+  return RECOMENDACOES.gestor;
+}
+
 function Icon({ children, className }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -582,6 +674,187 @@ function MaterialCard({ material, index }) {
   );
 }
 
+function InstituicaoCard({ inst, index }) {
+  return (
+    <div
+      className="gov-card gov-reveal bg-white border border-gray-200 rounded-lg p-5 flex gap-4"
+      style={{ animationDelay: `${index * 40}ms` }}
+    >
+      <div
+        className="flex-shrink-0 self-start font-montserrat text-base font-extrabold px-3 py-2 rounded-lg"
+        style={{ backgroundColor: `${inst.accent}14`, color: inst.accent }}
+      >
+        {inst.sigla}
+      </div>
+      <div className="min-w-0">
+        <h3 className="font-montserrat text-sm font-bold text-gray-900 leading-snug">{inst.nome}</h3>
+        <p className="text-xs text-gray-500 leading-relaxed mt-1">{inst.descricao}</p>
+      </div>
+    </div>
+  );
+}
+
+function baixarCertificado(cert) {
+  const conteudo =
+    'CERTIFICADO\n\n' +
+    'RECPSP — Rede Estadual de Compras Públicas de São Paulo\n\n' +
+    'Certificamos a conclusão do curso:\n' +
+    `${cert.curso}\n\n` +
+    `Concluído em ${cert.data}\n` +
+    'Status: Concluído\n';
+  const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `certificado-${cert.curso.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function CertificadoCard({ cert, index }) {
+  return (
+    <div
+      className="gov-card gov-reveal bg-white border border-gray-200 rounded-lg p-5 flex flex-col"
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div
+          className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: `${cert.accent}14`, color: cert.accent }}
+        >
+          <Icon className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </Icon>
+        </div>
+        <span
+          className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+          style={{ backgroundColor: '#0B924714', color: '#0B9247' }}
+        >
+          <Icon className="w-3 h-3">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </Icon>
+          Concluído
+        </span>
+      </div>
+      <h3 className="font-montserrat text-sm font-bold text-gray-900 leading-snug mb-1">{cert.curso}</h3>
+      <p className="text-xs text-gray-500 mb-4">Concluído em {cert.data}</p>
+      <button
+        onClick={() => baixarCertificado(cert)}
+        className="mt-auto inline-flex items-center justify-center gap-1.5 text-sm font-semibold px-4 py-2 rounded border transition-colors hover:bg-gray-50"
+        style={{ color: cert.accent, borderColor: cert.accent }}
+      >
+        Baixar certificado
+        <Icon className="w-4 h-4">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 6H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </Icon>
+      </button>
+    </div>
+  );
+}
+
+function CertificadosVazio() {
+  return (
+    <div className="bg-white border border-dashed border-gray-300 rounded-xl p-10 text-center">
+      <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4 text-gray-400">
+        <Icon className="w-6 h-6">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </Icon>
+      </div>
+      <p className="text-sm text-gray-600">Você ainda não possui certificados emitidos.</p>
+      <p className="text-xs text-gray-400 mt-1">Conclua um curso ou trilha para receber seu certificado.</p>
+    </div>
+  );
+}
+
+function RecomendacaoSection({ onVerTrilha }) {
+  const [texto, setTexto] = useState('');
+  const [resultado, setResultado] = useState(null);
+
+  const handleGerar = (e) => {
+    e.preventDefault();
+    setResultado(recomendar(texto));
+  };
+
+  return (
+    <section id="recomendacao" className="mb-16 scroll-mt-24">
+      <div
+        className="bg-white border border-gray-200 rounded-xl shadow-card p-6 sm:p-8 gov-reveal"
+        style={{ borderTop: '3px solid #034EA2' }}
+      >
+        <div className="max-w-2xl">
+          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#034EA2' }}>
+            Recomendação de capacitação
+          </span>
+          <h2 className="font-montserrat text-2xl font-bold text-gray-900 mt-2">Encontre sua trilha ideal</h2>
+          <p className="text-sm text-gray-500 mt-1.5">
+            Informe seu perfil ou desafio atual e veja uma sugestão de capacitação.
+          </p>
+
+          <form onSubmit={handleGerar} className="flex flex-col sm:flex-row gap-3 mt-5">
+            <input
+              type="text"
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              placeholder="Exemplo: Sou novo como fiscal de contrato."
+              aria-label="Descreva seu perfil ou desafio atual"
+              className="flex-1 bg-[#F8F9FB] border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-500"
+            />
+            <button
+              type="submit"
+              className="text-sm text-white font-semibold px-5 py-2.5 rounded transition hover:opacity-90 whitespace-nowrap"
+              style={{ backgroundColor: '#034EA2' }}
+            >
+              Gerar recomendação
+            </button>
+          </form>
+        </div>
+
+        {resultado && (
+          <div className="mt-7 pt-7 border-t border-gray-100">
+            <div
+              className="gov-reveal rounded-lg border p-5"
+              style={{ borderColor: resultado.accent, backgroundColor: `${resultado.accent}08` }}
+            >
+              <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: resultado.accent }}>
+                Trilha recomendada
+              </span>
+              <h3 className="font-montserrat text-lg font-bold text-gray-900 mt-1">{resultado.titulo}</h3>
+              <p className="text-sm text-gray-600 leading-relaxed mt-1.5">{resultado.motivo}</p>
+
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {resultado.cursos.map((curso, i) => (
+                  <div key={i} className="flex items-center gap-2.5 bg-white border border-gray-200 rounded-lg px-3 py-2">
+                    <span
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                      style={{ backgroundColor: resultado.accent }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span className="text-sm text-gray-700 leading-snug">{curso}</span>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => onVerTrilha(resultado.trilhaId)}
+                className="mt-5 inline-flex items-center gap-1.5 text-sm text-white font-semibold px-4 py-2 rounded transition hover:opacity-90"
+                style={{ backgroundColor: resultado.accent }}
+              >
+                Ver trilha
+                <Icon className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </Icon>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export default function Capacitacao() {
   const [selectedTrilha, setSelectedTrilha] = useState(null);
 
@@ -592,6 +865,11 @@ export default function Capacitacao() {
   const handleSelectTrilha = (id) => {
     setSelectedTrilha(id);
     setTimeout(() => scrollTo('jornada'), 60);
+  };
+
+  const handleVerTrilhaRecomendada = (trilhaId) => {
+    if (trilhaId) handleSelectTrilha(trilhaId);
+    else scrollTo('trilhas');
   };
 
   return (
@@ -712,6 +990,9 @@ export default function Capacitacao() {
         )}
       </section>
 
+      {/* Recomendação de Capacitação */}
+      <RecomendacaoSection onVerTrilha={handleVerTrilhaRecomendada} />
+
       {/* Próximos Eventos */}
       <section id="eventos" className="mb-16 scroll-mt-24">
         <div className="mb-6">
@@ -740,6 +1021,40 @@ export default function Capacitacao() {
             <MaterialCard key={material.titulo} material={material} index={i} />
           ))}
         </div>
+      </section>
+
+      {/* Instituições Parceiras */}
+      <section id="instituicoes" className="mb-16 scroll-mt-24">
+        <div className="mb-6">
+          <h2 className="font-montserrat text-2xl font-bold text-gray-900">Instituições parceiras</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Órgãos, universidades e escolas de governo que apoiam a formação da Rede.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {instituicoes.map((inst, i) => (
+            <InstituicaoCard key={inst.sigla} inst={inst} index={i} />
+          ))}
+        </div>
+      </section>
+
+      {/* Meus Certificados */}
+      <section id="certificados" className="mb-16 scroll-mt-24">
+        <div className="mb-6">
+          <h2 className="font-montserrat text-2xl font-bold text-gray-900">Meus certificados</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Certificados emitidos ao concluir cursos e trilhas de capacitação.
+          </p>
+        </div>
+        {certificados.length === 0 ? (
+          <CertificadosVazio />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {certificados.map((cert, i) => (
+              <CertificadoCard key={cert.curso} cert={cert} index={i} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* CTA Portal oficial */}
