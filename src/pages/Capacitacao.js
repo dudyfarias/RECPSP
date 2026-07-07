@@ -191,6 +191,60 @@ const trilhas = [
   },
 ];
 
+const eventos = [
+  {
+    nome: 'II Fórum de Contratações Públicas',
+    formato: 'Presencial',
+    data: '14 de agosto de 2026',
+    instituicao: 'RECPSP',
+    descricao: 'Painéis e debates sobre os avanços da Nova Lei de Licitações e as boas práticas da Rede.',
+    accent: '#FF161F',
+  },
+  {
+    nome: 'Oficina de Linguagem Simples nas Contratações Públicas',
+    formato: 'Online',
+    data: '3 de setembro de 2026',
+    instituicao: 'LILP',
+    descricao: 'Oficina prática para tornar editais e documentos mais claros e acessíveis à sociedade.',
+    accent: '#034EA2',
+  },
+  {
+    nome: 'Workshop de IA aplicada às Compras Públicas',
+    formato: 'Híbrido',
+    data: '22 de setembro de 2026',
+    instituicao: 'RECPSP · Prodesp',
+    descricao: 'Casos de uso, ferramentas e limites da inteligência artificial nas contratações.',
+    accent: '#233254',
+  },
+  {
+    nome: 'Seminário de Sustentabilidade nas Contratações',
+    formato: 'Presencial',
+    data: '8 de outubro de 2026',
+    instituicao: 'Secretaria de Meio Ambiente',
+    descricao: 'Critérios ESG, economia circular e experiências de sustentabilidade no setor público.',
+    accent: '#0B9247',
+  },
+  {
+    nome: 'Encontro da Rede Estadual de Compras Públicas',
+    formato: 'Híbrido',
+    data: '29 de outubro de 2026',
+    instituicao: 'RECPSP',
+    descricao: 'Encontro anual da Rede para troca de experiências e alinhamento da agenda estadual.',
+    accent: '#4297D3',
+  },
+];
+
+const materiais = [
+  { tipo: 'Guia', titulo: 'Guia prático da Lei nº 14.133/2021', tema: 'Legislação', descricao: 'Referência sobre os principais dispositivos e mudanças da Nova Lei de Licitações.', accent: '#FF161F' },
+  { tipo: 'Checklist', titulo: 'Checklist para Estudo Técnico Preliminar', tema: 'Planejamento', descricao: 'Passo a passo para elaborar um ETP consistente e bem fundamentado.', accent: '#034EA2' },
+  { tipo: 'Modelo', titulo: 'Modelo de Termo de Referência', tema: 'Instrução Processual', descricao: 'Modelo editável para estruturar o Termo de Referência da contratação.', accent: '#0B9247' },
+  { tipo: 'Cartilha', titulo: 'Cartilha de Pesquisa de Preços', tema: 'Instrução Processual', descricao: 'Orientações práticas para conduzir a pesquisa de preços com segurança.', accent: '#4297D3' },
+  { tipo: 'Guia', titulo: 'Guia de Gestão e Fiscalização Contratual', tema: 'Gestão de Contratos', descricao: 'Boas práticas de acompanhamento, fiscalização e aplicação de sanções.', accent: '#233254' },
+  { tipo: 'Manual', titulo: 'Manual de Compras Sustentáveis', tema: 'Sustentabilidade', descricao: 'Critérios e exemplos para inserir sustentabilidade nas compras públicas.', accent: '#0B9247' },
+  { tipo: 'Apresentação', titulo: 'Apresentação sobre PCA', tema: 'Planejamento', descricao: 'Slides sobre a elaboração e o acompanhamento do Plano de Contratações Anual.', accent: '#94AA5A' },
+  { tipo: 'Webinar', titulo: 'Webinar sobre IA aplicada às Contratações', tema: 'Inovação', descricao: 'Gravação com casos de uso de IA nas contratações e os cuidados necessários.', accent: '#034EA2' },
+];
+
 function Icon({ children, className }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -418,6 +472,116 @@ function TrilhaJornada({ trilha, onClose }) {
   );
 }
 
+const FORMATO_COLOR = {
+  'Presencial': '#0B9247',
+  'Online': '#034EA2',
+  'Híbrido': '#233254',
+};
+
+function FormatoBadge({ formato }) {
+  const c = FORMATO_COLOR[formato] || '#034EA2';
+  return (
+    <span
+      className="text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
+      style={{ backgroundColor: `${c}14`, color: c }}
+    >
+      {formato}
+    </span>
+  );
+}
+
+function EventoCard({ evento, index }) {
+  return (
+    <div
+      className="gov-card gov-reveal bg-white border border-gray-200 flex flex-col"
+      style={{ borderTop: `3px solid ${evento.accent}`, borderRadius: '8px', animationDelay: `${index * 50}ms` }}
+    >
+      <div className="p-5 flex flex-col flex-1">
+        <div className="flex items-center gap-2 flex-wrap mb-3">
+          <FormatoBadge formato={evento.formato} />
+          <span className="text-xs text-gray-500 flex items-center gap-1.5">
+            <Icon className="w-4 h-4 text-gray-400 flex-shrink-0">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </Icon>
+            {evento.data}
+          </span>
+        </div>
+        <h3 className="font-montserrat text-base font-bold text-gray-900 leading-snug mb-2">{evento.nome}</h3>
+        <p className="text-sm text-gray-500 leading-relaxed mb-4 flex-1">{evento.descricao}</p>
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          <Icon className="w-4 h-4 text-gray-400 flex-shrink-0">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </Icon>
+          {evento.instituicao}
+        </div>
+      </div>
+      <a
+        href={PORTAL_OFICIAL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-between px-5 py-3 border-t border-gray-100 text-sm font-semibold transition-colors hover:bg-gray-50"
+        style={{ color: evento.accent }}
+      >
+        Ver detalhes
+        <Icon className="w-4 h-4">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+        </Icon>
+      </a>
+    </div>
+  );
+}
+
+const MATERIAL_ICON = {
+  'Guia': <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />,
+  'Manual': <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />,
+  'Cartilha': <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />,
+  'Checklist': <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />,
+  'Modelo': <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />,
+  'Apresentação': <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />,
+  'Webinar': <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />,
+};
+
+function MaterialCard({ material, index }) {
+  return (
+    <div
+      className="gov-card gov-reveal bg-white border border-gray-200 rounded-lg p-5 flex flex-col"
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
+      <div className="flex items-start gap-3 mb-3">
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: `${material.accent}14`, color: material.accent }}
+        >
+          <Icon className="w-5 h-5">{MATERIAL_ICON[material.tipo]}</Icon>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold">{material.tipo}</div>
+          <h3 className="font-montserrat text-sm font-bold text-gray-900 leading-snug">{material.titulo}</h3>
+        </div>
+      </div>
+      <span
+        className="self-start text-[11px] font-semibold px-2 py-0.5 rounded-full mb-3"
+        style={{ backgroundColor: `${material.accent}14`, color: material.accent }}
+      >
+        {material.tema}
+      </span>
+      <p className="text-sm text-gray-500 leading-relaxed mb-4 flex-1">{material.descricao}</p>
+      <a
+        href={PORTAL_OFICIAL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold transition-colors"
+        style={{ color: material.accent }}
+      >
+        Acessar material
+        <Icon className="w-4 h-4">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 6H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </Icon>
+      </a>
+    </div>
+  );
+}
+
 export default function Capacitacao() {
   const [selectedTrilha, setSelectedTrilha] = useState(null);
 
@@ -546,6 +710,36 @@ export default function Capacitacao() {
             onClose={() => setSelectedTrilha(null)}
           />
         )}
+      </section>
+
+      {/* Próximos Eventos */}
+      <section id="eventos" className="mb-16 scroll-mt-24">
+        <div className="mb-6">
+          <h2 className="font-montserrat text-2xl font-bold text-gray-900">Próximos eventos</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Fóruns, oficinas e encontros promovidos pela Rede e por instituições parceiras.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {eventos.map((evento, i) => (
+            <EventoCard key={evento.nome} evento={evento} index={i} />
+          ))}
+        </div>
+      </section>
+
+      {/* Materiais de Apoio */}
+      <section id="materiais" className="mb-16 scroll-mt-24">
+        <div className="mb-6">
+          <h2 className="font-montserrat text-2xl font-bold text-gray-900">Materiais de apoio</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Guias, modelos e conteúdos complementares para o dia a dia das contratações.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {materiais.map((material, i) => (
+            <MaterialCard key={material.titulo} material={material} index={i} />
+          ))}
+        </div>
       </section>
 
       {/* CTA Portal oficial */}
