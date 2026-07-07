@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const PORTAL_OFICIAL = 'https://compras.sp.gov.br/agente-publico/capacitacao/';
@@ -12,7 +13,7 @@ const indicadores = [
     ),
   },
   {
-    valor: '6',
+    valor: '8',
     label: 'Trilhas de aprendizagem',
     color: '#034EA2',
     icon: (
@@ -59,10 +60,135 @@ const cursos = [
 ];
 
 const trilhas = [
-  { titulo: 'Trilha do Agente de Contratação', descricao: 'Formação completa para atuar em todas as etapas do processo de contratação sob a Nova Lei de Licitações.', cursos: 6, carga: '90h', accent: '#FF161F' },
-  { titulo: 'Trilha de Planejamento da Contratação', descricao: 'Do PCA ao Estudo Técnico Preliminar: estruture a fase de planejamento com segurança e eficiência.', cursos: 4, carga: '55h', accent: '#034EA2' },
-  { titulo: 'Trilha de Gestão e Fiscalização de Contratos', descricao: 'Acompanhamento, fiscalização e aplicação de sanções na execução dos contratos administrativos.', cursos: 5, carga: '70h', accent: '#0B9247' },
-  { titulo: 'Trilha de Sustentabilidade e Inovação', descricao: 'Critérios ESG, compras sustentáveis e novas tecnologias aplicadas às contratações públicas.', cursos: 3, carga: '40h', accent: '#233254' },
+  {
+    id: 'agente-contratacao',
+    titulo: 'Agente de Contratação',
+    descricao: 'Formação completa para conduzir todas as etapas do processo de contratação sob a Nova Lei de Licitações.',
+    nivel: 'Intermediário',
+    carga: '90h',
+    accent: '#FF161F',
+    jornada: [
+      'Fundamentos da Lei nº 14.133/2021',
+      'Planejamento da contratação',
+      'Estudo Técnico Preliminar',
+      'Termo de Referência',
+      'Pesquisa de Preços',
+      'Gestão de Riscos',
+      'Seleção do fornecedor',
+      'Gestão e fiscalização contratual',
+    ],
+  },
+  {
+    id: 'pregoeiro',
+    titulo: 'Pregoeiro',
+    descricao: 'Domine a condução do pregão eletrônico, do edital à adjudicação, com segurança jurídica.',
+    nivel: 'Intermediário',
+    carga: '70h',
+    accent: '#034EA2',
+    jornada: [
+      'Fundamentos da Lei nº 14.133/2021',
+      'Modalidade Pregão na prática',
+      'Elaboração do edital',
+      'Condução da sessão pública (PNCP)',
+      'Julgamento e classificação de propostas',
+      'Habilitação e diligências',
+      'Recursos, adjudicação e homologação',
+    ],
+  },
+  {
+    id: 'equipe-planejamento',
+    titulo: 'Equipe de Planejamento',
+    descricao: 'Estruture a fase de planejamento das contratações, do PCA ao Termo de Referência.',
+    nivel: 'Introdutório',
+    carga: '55h',
+    accent: '#0B9247',
+    jornada: [
+      'Plano de Contratações Anual (PCA)',
+      'Levantamento de necessidades',
+      'Estudo Técnico Preliminar',
+      'Mapa de Riscos',
+      'Termo de Referência',
+      'Pesquisa de Preços',
+    ],
+  },
+  {
+    id: 'gestor-contratos',
+    titulo: 'Gestor de Contratos',
+    descricao: 'Coordene a execução contratual, alterações, reequilíbrio e encerramento com governança.',
+    nivel: 'Avançado',
+    carga: '65h',
+    accent: '#233254',
+    jornada: [
+      'Fundamentos da gestão contratual',
+      'Acompanhamento da execução',
+      'Alterações contratuais e aditivos',
+      'Reequilíbrio econômico-financeiro',
+      'Sanções administrativas',
+      'Encerramento e prestação de contas',
+    ],
+  },
+  {
+    id: 'fiscal-contratos',
+    titulo: 'Fiscal de Contratos',
+    descricao: 'Atue na fiscalização técnica e administrativa da execução dos contratos administrativos.',
+    nivel: 'Intermediário',
+    carga: '50h',
+    accent: '#4297D3',
+    jornada: [
+      'Papel do fiscal de contratos',
+      'Fiscalização técnica e administrativa',
+      'Registro de ocorrências',
+      'Medição e ateste',
+      'Gestão de Riscos na execução',
+      'Aplicação de penalidades',
+    ],
+  },
+  {
+    id: 'servidor-municipal',
+    titulo: 'Servidor Municipal',
+    descricao: 'Primeiros passos nas contratações públicas para servidores de municípios.',
+    nivel: 'Introdutório',
+    carga: '40h',
+    accent: '#94AA5A',
+    jornada: [
+      'Introdução às contratações públicas',
+      'Fundamentos da Lei nº 14.133/2021',
+      'Governança nas contratações',
+      'Linguagem Simples no serviço público',
+      'Ética e integridade',
+    ],
+  },
+  {
+    id: 'gestor-publico',
+    titulo: 'Gestor Público',
+    descricao: 'Visão estratégica de governança, riscos e resultados nas contratações públicas.',
+    nivel: 'Avançado',
+    carga: '60h',
+    accent: '#FF161F',
+    jornada: [
+      'Governança e liderança nas contratações',
+      'Planejamento estratégico de compras',
+      'Gestão de riscos institucional',
+      'Controle e transparência',
+      'Indicadores e gestão por resultados',
+      'Inovação e IA nas contratações',
+    ],
+  },
+  {
+    id: 'compras-sustentaveis',
+    titulo: 'Compras Sustentáveis',
+    descricao: 'Incorpore critérios ESG e sustentabilidade ao ciclo das contratações públicas.',
+    nivel: 'Intermediário',
+    carga: '35h',
+    accent: '#0B9247',
+    jornada: [
+      'Fundamentos das compras sustentáveis',
+      'Critérios ESG em licitações',
+      'Especificações e rótulos ambientais',
+      'Ciclo de vida e economia circular',
+      'Boas práticas e casos de sucesso',
+    ],
+  },
 ];
 
 function Icon({ children, className }) {
@@ -147,11 +273,29 @@ function CourseCard({ curso, index }) {
   );
 }
 
-function TrilhaCard({ trilha, index }) {
+const NIVEL_COLOR = {
+  'Introdutório': '#0B9247',
+  'Intermediário': '#034EA2',
+  'Avançado': '#FF161F',
+};
+
+function NivelBadge({ nivel }) {
+  const c = NIVEL_COLOR[nivel] || '#034EA2';
+  return (
+    <span
+      className="text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
+      style={{ backgroundColor: `${c}14`, color: c }}
+    >
+      {nivel}
+    </span>
+  );
+}
+
+function TrilhaCard({ trilha, index, isSelected, onSelect }) {
   return (
     <div
-      className="gov-card gov-reveal bg-white border border-gray-200 rounded-lg p-5 flex gap-4"
-      style={{ animationDelay: `${index * 50}ms` }}
+      className="gov-card gov-reveal bg-white border rounded-lg p-5 flex gap-4"
+      style={{ animationDelay: `${index * 50}ms`, borderColor: isSelected ? trilha.accent : '#e5e7eb' }}
     >
       <div
         className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -162,25 +306,109 @@ function TrilhaCard({ trilha, index }) {
         </Icon>
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="font-montserrat text-base font-bold text-gray-900 leading-snug mb-1.5">{trilha.titulo}</h3>
+        <div className="flex items-start justify-between gap-2 mb-1.5">
+          <h3 className="font-montserrat text-base font-bold text-gray-900 leading-snug">{trilha.titulo}</h3>
+          <NivelBadge nivel={trilha.nivel} />
+        </div>
         <p className="text-sm text-gray-500 leading-relaxed mb-3">{trilha.descricao}</p>
         <div className="flex items-center gap-4 mb-3">
-          <span className="text-xs text-gray-500 flex items-center gap-1.5">
-            <span className="font-semibold text-gray-700">{trilha.cursos}</span> cursos
+          <span className="text-xs text-gray-500">
+            <span className="font-semibold text-gray-700">{trilha.jornada.length}</span> cursos
           </span>
           <span className="w-px h-3 bg-gray-200" />
-          <span className="text-xs text-gray-500 flex items-center gap-1.5">
+          <span className="text-xs text-gray-500">
             <span className="font-semibold text-gray-700">{trilha.carga}</span> no total
           </span>
         </div>
+        <button
+          onClick={onSelect}
+          aria-expanded={isSelected}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold transition-colors"
+          style={{ color: trilha.accent }}
+        >
+          Ver trilha
+          <Icon className="w-4 h-4">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </Icon>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TrilhaJornada({ trilha, onClose }) {
+  return (
+    <div
+      id="jornada"
+      className="mt-8 bg-white border border-gray-200 rounded-xl shadow-card p-6 sm:p-8 gov-reveal scroll-mt-24"
+      style={{ borderTop: `3px solid ${trilha.accent}` }}
+    >
+      {/* Header da jornada */}
+      <div className="flex items-start justify-between gap-4 mb-7">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-2">
+            <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: trilha.accent }}>
+              Jornada da trilha
+            </span>
+            <NivelBadge nivel={trilha.nivel} />
+          </div>
+          <h3 className="font-montserrat text-xl sm:text-2xl font-bold text-gray-900 leading-snug">{trilha.titulo}</h3>
+          <p className="text-xs text-gray-500 mt-1.5">
+            {trilha.jornada.length} cursos · {trilha.carga} de carga horária total
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1"
+          aria-label="Fechar jornada"
+        >
+          <Icon className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </Icon>
+        </button>
+      </div>
+
+      {/* Etapas numeradas com linha de progresso */}
+      <ol className="relative">
+        {trilha.jornada.map((step, i) => {
+          const isLast = i === trilha.jornada.length - 1;
+          return (
+            <li key={i} className="relative pl-14 pb-4 last:pb-0">
+              {!isLast && (
+                <span
+                  className="absolute left-[17px] top-10 bottom-0 w-0.5"
+                  style={{ backgroundColor: '#E8EAF0' }}
+                  aria-hidden="true"
+                />
+              )}
+              <span
+                className="absolute left-0 top-1 w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                style={{ backgroundColor: trilha.accent }}
+              >
+                {i + 1}
+              </span>
+              <div className="bg-[#F8F9FB] border border-gray-200 rounded-lg px-4 py-3">
+                <div className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold mb-0.5">Etapa {i + 1}</div>
+                <div className="text-sm font-medium text-gray-800 leading-snug">{step}</div>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+
+      {/* Rodapé da jornada */}
+      <div className="mt-7 pt-5 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-gray-500">
+          Ao concluir todas as etapas, você finaliza a trilha <span className="font-semibold text-gray-700">{trilha.titulo}</span>.
+        </p>
         <a
           href={PORTAL_OFICIAL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold transition-colors"
-          style={{ color: trilha.accent }}
+          className="inline-flex items-center gap-2 text-sm text-white font-semibold px-4 py-2 rounded transition-opacity hover:opacity-90"
+          style={{ backgroundColor: trilha.accent }}
         >
-          Iniciar trilha
+          Começar trilha
           <Icon className="w-4 h-4">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </Icon>
@@ -191,8 +419,15 @@ function TrilhaCard({ trilha, index }) {
 }
 
 export default function Capacitacao() {
+  const [selectedTrilha, setSelectedTrilha] = useState(null);
+
   const scrollTo = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleSelectTrilha = (id) => {
+    setSelectedTrilha(id);
+    setTimeout(() => scrollTo('jornada'), 60);
   };
 
   return (
@@ -290,14 +525,27 @@ export default function Capacitacao() {
         <div className="mb-6">
           <h2 className="font-montserrat text-2xl font-bold text-gray-900">Trilhas de aprendizagem</h2>
           <p className="text-sm text-gray-500 mt-1">
-            Percursos organizados que combinam vários cursos em uma jornada completa.
+            Percursos organizados por perfil profissional. Escolha o seu e visualize a jornada completa.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {trilhas.map((trilha, i) => (
-            <TrilhaCard key={trilha.titulo} trilha={trilha} index={i} />
+            <TrilhaCard
+              key={trilha.id}
+              trilha={trilha}
+              index={i}
+              isSelected={selectedTrilha === trilha.id}
+              onSelect={() => handleSelectTrilha(trilha.id)}
+            />
           ))}
         </div>
+
+        {selectedTrilha && (
+          <TrilhaJornada
+            trilha={trilhas.find((t) => t.id === selectedTrilha)}
+            onClose={() => setSelectedTrilha(null)}
+          />
+        )}
       </section>
 
       {/* CTA Portal oficial */}
