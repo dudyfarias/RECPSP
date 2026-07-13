@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, Children } from 'react';
 import { Link } from 'react-router-dom';
 
 const PORTAL_OFICIAL = 'https://compras.sp.gov.br/agente-publico/capacitacao/';
@@ -345,6 +345,59 @@ function Icon({ children, className }) {
   );
 }
 
+function Carousel({ children, itemClassName }) {
+  const ref = useRef(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
+
+  const update = () => {
+    const el = ref.current;
+    if (!el) return;
+    setAtStart(el.scrollLeft <= 2);
+    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 2);
+  };
+
+  useEffect(() => {
+    update();
+    const el = ref.current;
+    if (!el) return;
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      el.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
+  const page = (dir) => {
+    const el = ref.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    // Instant assignment always scrolls; CSS `scroll-behavior: smooth`
+    // (via motion-safe:scroll-smooth) animates it in browsers that support it.
+    el.scrollLeft = Math.max(0, Math.min(el.scrollLeft + dir * el.clientWidth * 0.9, max));
+  };
+
+  const arrowBase =
+    'hidden md:flex absolute top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-card text-gray-600 transition hover:text-[#034EA2] hover:border-[#034EA2] disabled:opacity-0 disabled:pointer-events-none';
+
+  return (
+    <div className="relative">
+      <button type="button" onClick={() => page(-1)} disabled={atStart} aria-label="Ver anteriores" className={`${arrowBase} -left-3`}>
+        <Icon className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></Icon>
+      </button>
+      <button type="button" onClick={() => page(1)} disabled={atEnd} aria-label="Ver próximos" className={`${arrowBase} -right-3`}>
+        <Icon className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></Icon>
+      </button>
+      <div ref={ref} className="flex gap-5 overflow-x-auto snap-x snap-mandatory motion-safe:scroll-smooth no-scrollbar py-3">
+        {Children.map(children, (child) => (
+          <div className={`snap-start shrink-0 ${itemClassName}`}>{child}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function StatTile({ item, index }) {
   return (
     <div
@@ -366,7 +419,7 @@ function StatTile({ item, index }) {
 function CourseCard({ curso, index }) {
   return (
     <div
-      className="gov-card gov-reveal bg-white border border-gray-200 flex flex-col"
+      className="gov-card gov-reveal h-full bg-white border border-gray-200 flex flex-col"
       style={{ borderTop: `3px solid ${curso.accent}`, borderRadius: '8px', animationDelay: `${index * 50}ms` }}
     >
       <div className="p-5 flex flex-col flex-1">
@@ -440,7 +493,7 @@ function NivelBadge({ nivel }) {
 function TrilhaCard({ trilha, index, isSelected, onSelect }) {
   return (
     <div
-      className="gov-card gov-reveal bg-white border rounded-lg p-5 flex gap-4"
+      className="gov-card gov-reveal h-full bg-white border rounded-lg p-5 flex gap-4"
       style={{ animationDelay: `${index * 50}ms`, borderColor: isSelected ? trilha.accent : '#e5e7eb' }}
     >
       <div
@@ -451,7 +504,7 @@ function TrilhaCard({ trilha, index, isSelected, onSelect }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
         </Icon>
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex flex-col">
         <div className="flex items-start justify-between gap-2 mb-1.5">
           <h3 className="font-montserrat text-base font-bold text-gray-900 leading-snug">{trilha.titulo}</h3>
           <NivelBadge nivel={trilha.nivel} />
@@ -470,7 +523,7 @@ function TrilhaCard({ trilha, index, isSelected, onSelect }) {
           type="button"
           onClick={onSelect}
           aria-expanded={isSelected}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold transition hover:opacity-80"
+          className="mt-auto self-start inline-flex items-center gap-1.5 text-sm font-semibold transition hover:opacity-80"
           style={{ color: trilha.accent }}
         >
           Ver trilha
@@ -586,7 +639,7 @@ function FormatoBadge({ formato }) {
 function EventoCard({ evento, index }) {
   return (
     <div
-      className="gov-card gov-reveal bg-white border border-gray-200 flex flex-col"
+      className="gov-card gov-reveal h-full bg-white border border-gray-200 flex flex-col"
       style={{ borderTop: `3px solid ${evento.accent}`, borderRadius: '8px', animationDelay: `${index * 50}ms` }}
     >
       <div className="p-5 flex flex-col flex-1">
@@ -637,7 +690,7 @@ const MATERIAL_ICON = {
 function MaterialCard({ material, index }) {
   return (
     <div
-      className="gov-card gov-reveal bg-white border border-gray-200 rounded-lg p-5 flex flex-col"
+      className="gov-card gov-reveal h-full bg-white border border-gray-200 rounded-lg p-5 flex flex-col"
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <div className="flex items-start gap-3 mb-3">
@@ -1036,12 +1089,15 @@ export default function Capacitacao() {
             Formações selecionadas para agentes públicos que atuam em contratações.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <Carousel itemClassName="basis-[82%] sm:basis-[calc((100%_-_1.25rem)/2)] lg:basis-[calc((100%_-_2.5rem)/3)]">
           {cursos.map((curso, i) => (
             <CourseCard key={curso.titulo} curso={curso} index={i} />
           ))}
-        </div>
+        </Carousel>
       </section>
+
+      {/* Recomendação de Capacitação */}
+      <RecomendacaoSection onVerTrilha={handleVerTrilhaRecomendada} />
 
       {/* Trilhas de aprendizagem */}
       <section id="trilhas" className="mb-16 scroll-mt-24">
@@ -1051,7 +1107,7 @@ export default function Capacitacao() {
             Percursos organizados por perfil profissional. Escolha o seu e visualize a jornada completa.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <Carousel itemClassName="basis-[82%] sm:basis-[calc((100%_-_1.25rem)/2)] lg:basis-[calc((100%_-_2.5rem)/3)]">
           {trilhas.map((trilha, i) => (
             <TrilhaCard
               key={trilha.id}
@@ -1061,7 +1117,7 @@ export default function Capacitacao() {
               onSelect={() => handleSelectTrilha(trilha.id)}
             />
           ))}
-        </div>
+        </Carousel>
 
         {selectedTrilha && (
           <TrilhaJornada
@@ -1071,9 +1127,6 @@ export default function Capacitacao() {
         )}
       </section>
 
-      {/* Recomendação de Capacitação */}
-      <RecomendacaoSection onVerTrilha={handleVerTrilhaRecomendada} />
-
       {/* Próximos Eventos */}
       <section id="eventos" className="mb-16 scroll-mt-24">
         <div className="mb-6">
@@ -1082,11 +1135,11 @@ export default function Capacitacao() {
             Fóruns, oficinas e encontros promovidos pela Rede e por instituições parceiras.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <Carousel itemClassName="basis-[82%] sm:basis-[calc((100%_-_1.25rem)/2)] lg:basis-[calc((100%_-_2.5rem)/3)]">
           {eventos.map((evento, i) => (
             <EventoCard key={evento.nome} evento={evento} index={i} />
           ))}
-        </div>
+        </Carousel>
       </section>
 
       {/* Materiais de Apoio */}
@@ -1097,11 +1150,11 @@ export default function Capacitacao() {
             Guias, modelos e conteúdos complementares para o dia a dia das contratações.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <Carousel itemClassName="basis-[74%] sm:basis-[calc((100%_-_1.25rem)/2)] lg:basis-[calc((100%_-_3.75rem)/4)]">
           {materiais.map((material, i) => (
             <MaterialCard key={material.titulo} material={material} index={i} />
           ))}
-        </div>
+        </Carousel>
       </section>
 
       {/* Biblioteca Digital de Logística Pública */}
