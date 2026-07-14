@@ -257,14 +257,6 @@ const instituicoes = [
   { sigla: 'PGE/SP', nome: 'Procuradoria Geral do Estado de São Paulo', descricao: 'Assessoria jurídica e segurança normativa nas contratações.', accent: '#233254' },
 ];
 
-const certificados = [
-  { curso: 'Lei nº 14.133/2021', data: '12/03/2026', accent: '#FF161F' },
-  { curso: 'Plano de Contratações Anual', data: '28/03/2026', accent: '#034EA2' },
-  { curso: 'Linguagem Simples', data: '15/04/2026', accent: '#4297D3' },
-  { curso: 'Compras Sustentáveis', data: '30/04/2026', accent: '#0B9247' },
-  { curso: 'Inteligência Artificial aplicada às Contratações', data: '20/05/2026', accent: '#233254' },
-];
-
 const RECOMENDACOES = {
   fiscal: {
     titulo: 'Fiscal de Contratos',
@@ -748,80 +740,6 @@ function InstituicaoCard({ inst, index }) {
   );
 }
 
-function baixarCertificado(cert) {
-  const conteudo =
-    'CERTIFICADO\n\n' +
-    'RECPSP — Rede Estadual de Compras Públicas de São Paulo\n\n' +
-    'Certificamos a conclusão do curso:\n' +
-    `${cert.curso}\n\n` +
-    `Concluído em ${cert.data}\n` +
-    'Status: Concluído\n';
-  const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `certificado-${cert.curso.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.txt`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function CertificadoCard({ cert, index }) {
-  return (
-    <div
-      className="gov-card gov-reveal bg-white border border-gray-200 rounded-lg p-5 flex flex-col"
-      style={{ animationDelay: `${index * 50}ms` }}
-    >
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ backgroundColor: `${cert.accent}14`, color: cert.accent }}
-        >
-          <Icon className="w-5 h-5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </Icon>
-        </div>
-        <span
-          className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-          style={{ backgroundColor: '#0B924714', color: '#0B9247' }}
-        >
-          <Icon className="w-3 h-3">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </Icon>
-          Concluído
-        </span>
-      </div>
-      <h3 className="font-montserrat text-sm font-bold text-gray-900 leading-snug mb-1">{cert.curso}</h3>
-      <p className="text-xs text-gray-500 mb-4">Concluído em {cert.data}</p>
-      <button
-        onClick={() => baixarCertificado(cert)}
-        className="mt-auto inline-flex items-center justify-center gap-1.5 text-sm font-semibold px-4 py-2 rounded border transition-colors hover:bg-gray-50"
-        style={{ color: cert.accent, borderColor: cert.accent }}
-      >
-        Baixar certificado
-        <Icon className="w-4 h-4">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 6H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </Icon>
-      </button>
-    </div>
-  );
-}
-
-function CertificadosVazio() {
-  return (
-    <div className="bg-white border border-dashed border-gray-300 rounded-xl p-10 text-center">
-      <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4 text-gray-400">
-        <Icon className="w-6 h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </Icon>
-      </div>
-      <p className="text-sm text-gray-600">Você ainda não possui certificados emitidos.</p>
-      <p className="text-xs text-gray-400 mt-1">Conclua um curso ou trilha para receber seu certificado.</p>
-    </div>
-  );
-}
-
 function RecomendacaoSection({ onVerTrilha }) {
   const [texto, setTexto] = useState('');
   const [resultado, setResultado] = useState(null);
@@ -1173,25 +1091,6 @@ export default function Capacitacao() {
             <InstituicaoCard key={inst.sigla} inst={inst} index={i} />
           ))}
         </div>
-      </section>
-
-      {/* Meus Certificados */}
-      <section id="certificados" className="mb-16 scroll-mt-24">
-        <div className="mb-6">
-          <h2 className="font-montserrat text-2xl font-bold text-gray-900">Meus certificados</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Certificados emitidos ao concluir cursos e trilhas de capacitação.
-          </p>
-        </div>
-        {certificados.length === 0 ? (
-          <CertificadosVazio />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {certificados.map((cert, i) => (
-              <CertificadoCard key={cert.curso} cert={cert} index={i} />
-            ))}
-          </div>
-        )}
       </section>
 
       {/* CTA Portal oficial */}
