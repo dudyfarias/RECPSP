@@ -3,47 +3,41 @@ import { Link } from 'react-router-dom';
 
 const PORTAL_OFICIAL = 'https://compras.sp.gov.br/agente-publico/capacitacao/';
 
-const indicadores = [
+const PROGRESSO_GERAL = 67; // demo estático
+const RING_R = 52;
+const RING_C = 2 * Math.PI * RING_R;
+const RING_OFFSET = RING_C * (1 - PROGRESSO_GERAL / 100);
+
+const jornadaStats = [
   {
-    valor: '42',
-    label: 'Cursos disponíveis',
-    color: '#FF161F',
+    valor: '12',
+    label: 'Cursos concluídos',
+    color: '#034EA2',
     icon: (
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
     ),
   },
   {
-    valor: '8',
-    label: 'Trilhas de aprendizagem',
-    color: '#034EA2',
+    valor: '3',
+    label: 'Trilhas concluídas',
+    color: '#0B9247',
     icon: (
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
     ),
   },
   {
-    valor: '9',
-    label: 'Eventos previstos',
-    color: '#0B9247',
-    icon: (
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    ),
-  },
-  {
-    valor: '120',
-    label: 'Materiais de apoio',
-    color: '#4297D3',
-    icon: (
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-    ),
-  },
-  {
-    valor: '7',
-    label: 'Instituições parceiras',
+    valor: '48h',
+    label: 'Horas de capacitação',
     color: '#233254',
     icon: (
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
     ),
   },
+];
+
+const emAndamento = [
+  { titulo: 'Plano de Contratações Anual (PCA)', tema: 'Planejamento', progresso: 72, accent: '#034EA2' },
+  { titulo: 'Gestão Contratual', tema: 'Gestão de Contratos', progresso: 45, accent: '#233254' },
 ];
 
 const cursos = [
@@ -67,6 +61,7 @@ const trilhas = [
     nivel: 'Intermediário',
     carga: '90h',
     accent: '#FF161F',
+    popular: true,
     jornada: [
       'Fundamentos da Lei nº 14.133/2021',
       'Planejamento da contratação',
@@ -195,41 +190,36 @@ const eventos = [
   {
     nome: 'II Fórum de Contratações Públicas',
     formato: 'Presencial',
-    data: '14 de agosto de 2026',
+    dia: '14', mes: 'AGO', horario: '09h00 – 17h00',
     instituicao: 'RECPSP',
-    descricao: 'Painéis e debates sobre os avanços da Nova Lei de Licitações e as boas práticas da Rede.',
     accent: '#FF161F',
   },
   {
     nome: 'Oficina de Linguagem Simples nas Contratações Públicas',
     formato: 'Online',
-    data: '3 de setembro de 2026',
+    dia: '03', mes: 'SET', horario: '14h00 – 17h00',
     instituicao: 'LILP',
-    descricao: 'Oficina prática para tornar editais e documentos mais claros e acessíveis à sociedade.',
     accent: '#034EA2',
   },
   {
     nome: 'Workshop de IA aplicada às Compras Públicas',
     formato: 'Híbrido',
-    data: '22 de setembro de 2026',
+    dia: '22', mes: 'SET', horario: '09h00 – 12h00',
     instituicao: 'RECPSP · Prodesp',
-    descricao: 'Casos de uso, ferramentas e limites da inteligência artificial nas contratações.',
     accent: '#233254',
   },
   {
     nome: 'Seminário de Sustentabilidade nas Contratações',
     formato: 'Presencial',
-    data: '8 de outubro de 2026',
+    dia: '08', mes: 'OUT', horario: '09h00 – 17h00',
     instituicao: 'Secretaria de Meio Ambiente',
-    descricao: 'Critérios ESG, economia circular e experiências de sustentabilidade no setor público.',
     accent: '#0B9247',
   },
   {
     nome: 'Encontro da Rede Estadual de Compras Públicas',
     formato: 'Híbrido',
-    data: '29 de outubro de 2026',
+    dia: '29', mes: 'OUT', horario: '09h00 – 16h00',
     instituicao: 'RECPSP',
-    descricao: 'Encontro anual da Rede para troca de experiências e alinhamento da agenda estadual.',
     accent: '#4297D3',
   },
 ];
@@ -390,24 +380,6 @@ function Carousel({ children, itemClassName }) {
   );
 }
 
-function StatTile({ item, index }) {
-  return (
-    <div
-      className="gov-card gov-reveal bg-white border border-gray-200 rounded-lg px-4 py-5 flex flex-col items-center text-center"
-      style={{ animationDelay: `${index * 60}ms` }}
-    >
-      <div
-        className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
-        style={{ backgroundColor: `${item.color}14`, color: item.color }}
-      >
-        <Icon className="w-5 h-5">{item.icon}</Icon>
-      </div>
-      <div className="font-montserrat text-2xl font-bold text-gray-900 leading-none">{item.valor}</div>
-      <div className="text-xs text-gray-500 mt-1.5 leading-snug">{item.label}</div>
-    </div>
-  );
-}
-
 function CourseCard({ curso, index }) {
   return (
     <div
@@ -497,6 +469,17 @@ function TrilhaCard({ trilha, index, isSelected, onSelect }) {
         </Icon>
       </div>
       <div className="flex-1 min-w-0 flex flex-col">
+        {trilha.popular && (
+          <span
+            className="self-start inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full mb-2"
+            style={{ backgroundColor: '#FF161F14', color: '#FF161F' }}
+          >
+            <Icon className="w-3 h-3">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </Icon>
+            Mais procurado
+          </span>
+        )}
         <div className="flex items-start justify-between gap-2 mb-1.5">
           <h3 className="font-montserrat text-base font-bold text-gray-900 leading-snug">{trilha.titulo}</h3>
           <NivelBadge nivel={trilha.nivel} />
@@ -628,47 +611,6 @@ function FormatoBadge({ formato }) {
   );
 }
 
-function EventoCard({ evento, index }) {
-  return (
-    <div
-      className="gov-card gov-reveal h-full bg-white border border-gray-200 flex flex-col"
-      style={{ borderTop: `3px solid ${evento.accent}`, borderRadius: '8px', animationDelay: `${index * 50}ms` }}
-    >
-      <div className="p-5 flex flex-col flex-1">
-        <div className="flex items-center gap-2 flex-wrap mb-3">
-          <FormatoBadge formato={evento.formato} />
-          <span className="text-xs text-gray-500 flex items-center gap-1.5">
-            <Icon className="w-4 h-4 text-gray-400 flex-shrink-0">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </Icon>
-            {evento.data}
-          </span>
-        </div>
-        <h3 className="font-montserrat text-base font-bold text-gray-900 leading-snug mb-2">{evento.nome}</h3>
-        <p className="text-sm text-gray-500 leading-relaxed mb-4 flex-1">{evento.descricao}</p>
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <Icon className="w-4 h-4 text-gray-400 flex-shrink-0">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-          </Icon>
-          {evento.instituicao}
-        </div>
-      </div>
-      <a
-        href={PORTAL_OFICIAL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center justify-between px-5 py-3 border-t border-gray-100 text-sm font-semibold transition-colors hover:bg-gray-50"
-        style={{ color: evento.accent }}
-      >
-        Ver detalhes
-        <Icon className="w-4 h-4">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-        </Icon>
-      </a>
-    </div>
-  );
-}
-
 const MATERIAL_ICON = {
   'Guia': <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />,
   'Manual': <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />,
@@ -740,6 +682,15 @@ function InstituicaoCard({ inst, index }) {
   );
 }
 
+const CHIPS = [
+  { label: 'Fase Preparatória', query: 'planejamento' },
+  { label: 'Gestão Contratual', query: 'fiscal' },
+  { label: 'Sustentabilidade', query: 'sustentabilidade' },
+  { label: 'IA Aplicada', query: 'ia' },
+  { label: 'Jurídico', query: 'agente' },
+  { label: 'Outros', query: '' },
+];
+
 function RecomendacaoSection({ onVerTrilha }) {
   const [texto, setTexto] = useState('');
   const [resultado, setResultado] = useState(null);
@@ -747,6 +698,11 @@ function RecomendacaoSection({ onVerTrilha }) {
   const handleGerar = (e) => {
     e.preventDefault();
     setResultado(recomendar(texto));
+  };
+
+  const aplicarChip = (q) => {
+    setTexto(q);
+    setResultado(recomendar(q));
   };
 
   return (
@@ -781,6 +737,28 @@ function RecomendacaoSection({ onVerTrilha }) {
               Gerar recomendação
             </button>
           </form>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-gray-400 mr-1">Sugestões:</span>
+            {CHIPS.map((chip) => {
+              const ativo = !!resultado && texto === chip.query;
+              return (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={() => aplicarChip(chip.query)}
+                  aria-pressed={ativo}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                    ativo
+                      ? 'border-[#034EA2] bg-[#034EA2] text-white'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-[#034EA2] hover:text-[#034EA2]'
+                  }`}
+                >
+                  {chip.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {resultado && (
@@ -934,14 +912,21 @@ export default function Capacitacao() {
       </div>
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-white border border-gray-200 rounded-xl shadow-card px-6 sm:px-10 py-10 sm:py-12 mb-10 gov-reveal">
-        {/* Decorative network motif */}
+      <section
+        className="relative overflow-hidden rounded-xl shadow-card px-6 sm:px-10 py-12 sm:py-16 mb-10 gov-reveal"
+        style={{ background: 'linear-gradient(135deg, #233254 0%, #1a1a1a 100%)' }}
+      >
+        {/* Diagonal vermelha sutil */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="58%" y1="-5%" x2="102%" y2="105%" stroke="#FF161F" strokeWidth="2" opacity="0.35" />
+        </svg>
+        {/* Motif de rede (branco, baixa opacidade) */}
         <svg
-          className="hidden md:block absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none"
+          className="hidden md:block absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none"
           width="260" height="200" viewBox="0 0 260 200" fill="none" aria-hidden="true"
-          style={{ opacity: 0.08 }}
+          style={{ opacity: 0.12 }}
         >
-          <g stroke="#034EA2" strokeWidth="2">
+          <g stroke="#ffffff" strokeWidth="2">
             <line x1="40" y1="60" x2="120" y2="40" />
             <line x1="120" y1="40" x2="200" y2="70" />
             <line x1="120" y1="40" x2="150" y2="120" />
@@ -949,7 +934,7 @@ export default function Capacitacao() {
             <line x1="150" y1="120" x2="220" y2="150" />
             <line x1="40" y1="60" x2="60" y2="150" />
           </g>
-          <g fill="#034EA2">
+          <g fill="#ffffff">
             <circle cx="40" cy="60" r="8" /><circle cx="120" cy="40" r="10" />
             <circle cx="200" cy="70" r="7" /><circle cx="150" cy="120" r="9" />
             <circle cx="60" cy="150" r="7" /><circle cx="220" cy="150" r="6" />
@@ -957,46 +942,134 @@ export default function Capacitacao() {
           <circle cx="120" cy="40" r="10" fill="#FF161F" />
         </svg>
 
-        <div className="relative max-w-2xl">
-          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#034EA2' }}>
+        <div className="relative z-10 max-w-2xl">
+          <span className="gov-reveal text-xs font-semibold uppercase tracking-widest" style={{ color: '#4297D3', animationDelay: '0ms' }}>
             Rede Estadual de Compras Públicas · SP
           </span>
-          <h1 className="font-montserrat text-3xl sm:text-4xl font-extrabold text-gray-900 mt-3 mb-4 leading-tight">
+          <div className="gov-reveal mt-4 mb-5 h-1 w-12 rounded-full" style={{ backgroundColor: '#FF161F', animationDelay: '60ms' }} aria-hidden="true" />
+          <h1 className="gov-reveal font-montserrat text-4xl sm:text-5xl font-extrabold text-white leading-tight" style={{ animationDelay: '120ms' }}>
             Centro de Capacitação
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-7">
-            Desenvolva suas competências em contratações públicas por meio de cursos, trilhas de
-            aprendizagem, eventos e conteúdos produzidos pelas instituições parceiras da Rede
-            Estadual de Compras Públicas de São Paulo.
+          <p className="gov-reveal mt-4 mb-8 text-sm sm:text-base text-gray-300 leading-relaxed max-w-xl" style={{ animationDelay: '180ms' }}>
+            Desenvolva competências para transformar a gestão pública com conhecimento de qualidade.
           </p>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="gov-reveal flex flex-wrap items-center gap-3" style={{ animationDelay: '240ms' }}>
             <button
-              onClick={() => scrollTo('cursos')}
-              className="text-sm text-white font-semibold px-5 py-2.5 rounded transition"
+              onClick={() => scrollTo('trilhas')}
+              className="text-sm text-white font-semibold px-6 py-3 rounded transition-colors"
               style={{ backgroundColor: '#FF161F' }}
               onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#CC111A')}
               onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#FF161F')}
             >
-              Explorar cursos
+              Iniciar aprendizagem
             </button>
             <button
-              onClick={() => scrollTo('trilhas')}
-              className="text-sm font-semibold px-5 py-2.5 rounded border transition"
-              style={{ color: '#034EA2', borderColor: '#034EA2' }}
-              onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#034EA2'; e.currentTarget.style.color = '#fff'; }}
-              onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#034EA2'; }}
+              onClick={() => scrollTo('cursos')}
+              className="text-sm font-semibold px-6 py-3 rounded border border-white/60 text-white transition-colors hover:bg-white hover:text-[#233254]"
             >
-              Ver trilhas
+              Explorar catálogo
             </button>
           </div>
         </div>
       </section>
 
-      {/* Indicadores */}
-      <section className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-14">
-        {indicadores.map((item, i) => (
-          <StatTile key={item.label} item={item} index={i} />
-        ))}
+      {/* Minha Jornada */}
+      <section className="mb-16">
+        <div className="gov-reveal bg-white border border-gray-200 rounded-xl shadow-card p-6 sm:p-8" style={{ borderTop: '3px solid #FF161F' }}>
+          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#FF161F' }}>Minha Jornada</span>
+          <h2 className="sr-only">Minha Jornada</h2>
+
+          <div className="mt-5 flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+            {/* Anel de progresso */}
+            <div
+              className="relative w-40 h-40 flex-shrink-0 self-center md:self-auto"
+              role="progressbar"
+              aria-valuenow={PROGRESSO_GERAL}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Progresso geral da capacitação"
+            >
+              <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90" aria-hidden="true">
+                <circle cx="60" cy="60" r={RING_R} fill="none" stroke="#E8EAF0" strokeWidth="12" />
+                <circle
+                  cx="60" cy="60" r={RING_R} fill="none" stroke="#FF161F" strokeWidth="12"
+                  strokeLinecap="round" strokeDasharray={RING_C} strokeDashoffset={RING_OFFSET}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center" aria-hidden="true">
+                <span className="font-montserrat text-3xl font-extrabold text-gray-900 leading-none">{PROGRESSO_GERAL}%</span>
+                <span className="text-[11px] text-gray-500 mt-1">Progresso geral</span>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-1">
+              {jornadaStats.map((s) => (
+                <div key={s.label} className="bg-[#F8F9FB] border border-gray-200 rounded-lg px-4 py-4 flex items-center gap-3">
+                  <div
+                    className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: `${s.color}14`, color: s.color }}
+                  >
+                    <Icon className="w-5 h-5">{s.icon}</Icon>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-montserrat text-xl font-bold text-gray-900 leading-none">{s.valor}</div>
+                    <div className="text-xs text-gray-500 mt-1 leading-snug">{s.label}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Continue Aprendendo */}
+      <section className="mb-16">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <h2 className="font-montserrat text-2xl font-bold text-gray-900">Continue aprendendo</h2>
+            <p className="text-sm text-gray-500 mt-1">Retome seus cursos de onde parou.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => scrollTo('cursos')}
+            className="flex-shrink-0 inline-flex items-center gap-1 text-sm font-semibold transition hover:opacity-80"
+            style={{ color: '#034EA2' }}
+          >
+            Ver tudo
+            <Icon className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></Icon>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {emAndamento.map((c, i) => (
+            <div key={c.titulo} className="gov-card gov-reveal bg-white border border-gray-200 rounded-lg p-5 flex flex-col" style={{ animationDelay: `${i * 60}ms` }}>
+              <span className="self-start text-[11px] font-semibold px-2 py-0.5 rounded-full mb-3" style={{ backgroundColor: `${c.accent}14`, color: c.accent }}>{c.tema}</span>
+              <h3 className="font-montserrat text-base font-bold text-gray-900 leading-snug mb-4">{c.titulo}</h3>
+              <div
+                role="progressbar"
+                aria-valuenow={c.progresso}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`Progresso do curso ${c.titulo}: ${c.progresso}% concluído`}
+                className="h-2 w-full rounded-full bg-[#E8EAF0] overflow-hidden"
+              >
+                <div className="h-full rounded-full" style={{ width: `${c.progresso}%`, backgroundColor: '#FF161F' }} />
+              </div>
+              <span className="mt-2 text-xs font-semibold text-gray-700">{c.progresso}% concluído</span>
+              <a
+                href={PORTAL_OFICIAL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 self-start inline-flex items-center gap-1.5 text-sm text-white font-semibold px-4 py-2 rounded transition hover:opacity-90"
+                style={{ backgroundColor: c.accent }}
+              >
+                Continuar
+                <Icon className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></Icon>
+              </a>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Cursos em destaque */}
@@ -1053,11 +1126,45 @@ export default function Capacitacao() {
             Fóruns, oficinas e encontros promovidos pela Rede e por instituições parceiras.
           </p>
         </div>
-        <Carousel itemClassName="basis-[82%] sm:basis-[calc((100%_-_1.25rem)/2)] lg:basis-[calc((100%_-_2.5rem)/3)]">
-          {eventos.map((evento, i) => (
-            <EventoCard key={evento.nome} evento={evento} index={i} />
-          ))}
-        </Carousel>
+        <div className="gov-reveal bg-white border border-gray-200 rounded-xl shadow-card p-5 sm:p-6">
+          <ul className="divide-y divide-gray-100">
+            {eventos.map((evento) => (
+              <li key={evento.nome} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
+                {/* Selo de data */}
+                <div
+                  className="flex-shrink-0 w-14 flex flex-col items-center justify-center rounded-lg py-2"
+                  style={{ backgroundColor: `${evento.accent}14`, color: evento.accent }}
+                  aria-hidden="true"
+                >
+                  <span className="font-montserrat text-xl font-extrabold leading-none">{evento.dia}</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider mt-0.5">{evento.mes}</span>
+                </div>
+                {/* Conteúdo */}
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-montserrat text-sm sm:text-base font-bold text-gray-900 leading-snug">{evento.nome}</h3>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+                    <FormatoBadge formato={evento.formato} />
+                    <span className="text-gray-300">·</span>
+                    <span>{evento.horario}</span>
+                    <span className="hidden sm:inline text-gray-300">·</span>
+                    <span className="w-full sm:w-auto">{evento.instituicao}</span>
+                  </div>
+                </div>
+                {/* Ação */}
+                <a
+                  href={PORTAL_OFICIAL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Ver detalhes: ${evento.nome}`}
+                  className="flex-shrink-0 inline-flex items-center gap-1 text-sm font-semibold text-gray-400 transition hover:text-[#034EA2]"
+                >
+                  <span className="hidden sm:inline">Ver detalhes</span>
+                  <Icon className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></Icon>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       {/* Materiais de Apoio */}
@@ -1093,31 +1200,52 @@ export default function Capacitacao() {
         </div>
       </section>
 
-      {/* CTA Portal oficial */}
+      {/* CTA */}
       <section
-        className="rounded-xl px-6 sm:px-10 py-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5"
+        className="rounded-xl px-6 sm:px-10 py-8 flex flex-col md:flex-row md:items-center gap-6"
         style={{ backgroundColor: '#233254' }}
       >
-        <div className="max-w-xl">
-          <h3 className="font-montserrat text-lg font-bold text-white mb-1.5">
-            Portal oficial de Capacitação
-          </h3>
-          <p className="text-sm leading-relaxed" style={{ color: '#9aa8c4' }}>
-            Acesse o catálogo completo de cursos e certificações no portal do Governo do Estado de São Paulo.
-          </p>
+        <div className="flex items-start gap-4 flex-1">
+          <div
+            className="flex-shrink-0 w-11 h-11 rounded-lg flex items-center justify-center"
+            style={{ backgroundColor: 'rgba(255,255,255,0.10)', color: '#fff' }}
+          >
+            <Icon className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.44 60.44 0 00-.491 6.347A48.62 48.62 0 0112 20.904a48.62 48.62 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.9 59.9 0 0112 3.493a59.9 59.9 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.7 50.7 0 0112 13.489a50.7 50.7 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.38 55.38 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+            </Icon>
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-montserrat text-lg sm:text-xl font-bold text-white mb-1.5 leading-snug">
+              Invista no seu desenvolvimento e gere valor para o Estado
+            </h3>
+            <p className="text-sm leading-relaxed" style={{ color: '#9aa8c4' }}>
+              Conteúdos atualizados, trilhas completas e capacitação contínua.
+            </p>
+          </div>
         </div>
-        <a
-          href={PORTAL_OFICIAL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-shrink-0 inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded bg-white transition-colors hover:bg-gray-100"
-          style={{ color: '#233254' }}
-        >
-          Acessar portal
-          <Icon className="w-4 h-4">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </Icon>
-        </a>
+
+        <div className="flex flex-wrap items-center gap-3 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => scrollTo('cursos')}
+            className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded bg-white transition-colors hover:bg-gray-100"
+            style={{ color: '#233254' }}
+          >
+            Explorar catálogo
+            <Icon className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></Icon>
+          </button>
+          <a
+            href={PORTAL_OFICIAL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded border border-white/40 text-white transition-colors hover:bg-white/10"
+          >
+            Acessar portal
+            <Icon className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </Icon>
+          </a>
+        </div>
       </section>
     </div>
   );
