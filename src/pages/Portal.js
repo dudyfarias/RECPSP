@@ -51,6 +51,52 @@ const sections = [
       </svg>
     ),
   },
+  {
+    title: 'Portal de Desafios',
+    description: 'Desafios de inovação para soluções em logística e contratações públicas',
+    to: 'https://compras.sp.gov.br/laboratorio-de-logistica/portal-desafios-2/',
+    accent: '#4297D3',
+    available: true,
+    external: true,
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Plataforma de Sustentabilidade',
+    description: 'Critérios ESG e compras sustentáveis nas contratações do Estado',
+    accent: '#94AA5A',
+    available: false,
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Consultoria Executiva',
+    description: 'Apoio especializado para órgãos e entidades em contratações estratégicas',
+    accent: '#FF161F',
+    available: false,
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Biblioteca',
+    description: 'Acervo técnico, acadêmico e normativo sobre logística pública',
+    accent: '#034EA2',
+    available: false,
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332a48.36 48.36 0 00-15 0V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+      </svg>
+    ),
+  },
 ];
 
 function PortalCard({ section }) {
@@ -65,7 +111,7 @@ function PortalCard({ section }) {
 
   const inner = (
     <div
-      className="block h-full bg-white border border-gray-200 p-6 gov-card"
+      className={`flex flex-col h-full bg-white border border-gray-200 p-6 ${section.available ? 'gov-card' : ''}`}
       style={cardStyle}
     >
       <div className="flex items-start gap-4 mb-4">
@@ -81,25 +127,25 @@ function PortalCard({ section }) {
           </h2>
         </div>
       </div>
-      <p className="text-sm text-gray-500 leading-relaxed mb-5">
+      <p className="text-sm text-gray-500 leading-relaxed mb-5 flex-1">
         {section.description}
       </p>
-      <div
-        className="text-xs font-semibold transition-colors"
-        style={{ color: section.accent }}
-      >
-        Acessar →
-      </div>
+      {section.available ? (
+        <div className="text-xs font-semibold transition-colors" style={{ color: section.accent }}>
+          Acessar →
+        </div>
+      ) : (
+        <span className="self-start text-xs font-semibold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+          Em breve
+        </span>
+      )}
     </div>
   );
 
   if (!section.available) {
     return (
-      <div className="relative h-full opacity-60 cursor-not-allowed" style={{ borderRadius: '8px' }}>
+      <div className="h-full opacity-70 cursor-not-allowed" aria-disabled="true">
         {inner}
-        <span className="absolute top-4 right-4 text-xs font-semibold bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">
-          Em breve
-        </span>
       </div>
     );
   }
@@ -132,7 +178,7 @@ export default function Portal() {
       </div>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl w-full">
         {sections.map(section => (
           <PortalCard key={section.title} section={section} />
         ))}
