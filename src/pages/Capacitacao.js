@@ -665,7 +665,7 @@ function MaterialCard({ material, index }) {
 function InstituicaoCard({ inst, index }) {
   return (
     <div
-      className="gov-card gov-reveal bg-white border border-gray-200 rounded-lg p-5 flex gap-4"
+      className="gov-card gov-reveal h-full bg-white border border-gray-200 rounded-lg p-5 flex gap-4"
       style={{ animationDelay: `${index * 40}ms` }}
     >
       <div
@@ -1193,11 +1193,11 @@ export default function Capacitacao() {
             Órgãos, universidades e escolas de governo que apoiam a formação da Rede.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <Carousel itemClassName="basis-[82%] sm:basis-[calc((100%_-_1.25rem)/2)] lg:basis-[calc((100%_-_2.5rem)/3)]">
           {instituicoes.map((inst, i) => (
             <InstituicaoCard key={inst.sigla} inst={inst} index={i} />
           ))}
-        </div>
+        </Carousel>
       </section>
 
       {/* CTA */}
