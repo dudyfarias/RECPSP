@@ -76,7 +76,13 @@ function PostCard({ post, topic, isFirst, onDelete, onEdit, onLike, onDislike, o
   }
 
   return (
-    <div className={`border-b border-gray-100 last:border-0 ${post.best_answer ? 'bg-green-50 border-l-4 border-l-green-500' : ''}`}>
+    <div className={`border-b border-gray-100 last:border-0 ${
+      post.best_answer
+        ? 'bg-green-50 border-l-4 border-l-green-500'
+        : post.is_specialist_answer
+          ? 'bg-[#F5F8FC] border-l-4 border-l-[#034EA2]'
+          : ''
+    }`}>
       <div className="flex gap-4 p-5">
         {/* Avatar */}
         <div className="flex-shrink-0">
@@ -99,10 +105,33 @@ function PostCard({ post, topic, isFirst, onDelete, onEdit, onLike, onDislike, o
               {post.role === 'moderator' && (
                 <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded font-bold">Moderador</span>
               )}
+              {post.role === 'especialista' && (
+                <span
+                  className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-bold"
+                  style={{ backgroundColor: '#034EA214', color: '#034EA2' }}
+                >
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Especialista
+                </span>
+              )}
               {post.best_answer === 1 && (
                 <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded font-bold">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                   Melhor Resposta
+                </span>
+              )}
+              {post.is_specialist_answer > 0 && (
+                <span
+                  className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-bold text-white"
+                  style={{ backgroundColor: '#034EA2' }}
+                  title="Resposta de especialista verificado neste tema"
+                >
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Resposta verificada
                 </span>
               )}
             </div>

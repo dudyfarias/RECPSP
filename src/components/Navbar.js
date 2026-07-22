@@ -34,6 +34,13 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
   const [msg, setMsg] = useState('');
   const [allCategories, setAllCategories] = useState([]);
   const [selectedCats, setSelectedCats] = useState([]);
+  // Especializacao
+  const [specialties, setSpecialties] = useState([]);
+  const [specRequests, setSpecRequests] = useState([]);
+  const [specCat, setSpecCat] = useState('');
+  const [specJust, setSpecJust] = useState('');
+  const [specMsg, setSpecMsg] = useState('');
+  const [specSending, setSpecSending] = useState(false);
 
   // Fetch full profile + categories on mount
   useEffect(() => {
@@ -56,9 +63,36 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
         const cats = await apiFetch('/categories');
         setAllCategories(cats);
       } catch {}
+      try {
+        const spec = await apiFetch('/specialist/me', {}, token);
+        setSpecialties(spec.specialties || []);
+        setSpecRequests(spec.requests || []);
+      } catch {}
     }
     load();
   }, [token]);
+
+  async function handleSolicitarEspecializacao() {
+    if (!specCat) { setSpecMsg('Selecione um tema.'); return; }
+    setSpecSending(true);
+    setSpecMsg('');
+    try {
+      await apiFetch('/specialist/requests', {
+        method: 'POST',
+        body: JSON.stringify({ category_id: Number(specCat), justification: specJust }),
+      }, token);
+      const spec = await apiFetch('/specialist/me', {}, token);
+      setSpecialties(spec.specialties || []);
+      setSpecRequests(spec.requests || []);
+      setSpecCat('');
+      setSpecJust('');
+      setSpecMsg('Solicitação enviada! Um administrador vai analisar.');
+      setTimeout(() => setSpecMsg(''), 4000);
+    } catch (err) {
+      setSpecMsg(err.message);
+    }
+    setSpecSending(false);
+  }
 
   function toggleCategory(catId) {
     setSelectedCats(prev =>
@@ -221,6 +255,88 @@ function ProfileSettings({ user, token, onClose, onUpdate, onLogout }) {
               </div>
             </div>
           )}
+
+          {/* Especialização */}
+          <div className="border-t border-gray-200 pt-5">
+            <div className="flex items-center gap-2 mb-1">
+              <svg className="w-4 h-4" style={{ color: '#034EA2' }} fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <p className="text-sm font-semibold text-gray-700">Especialização</p>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">
+              Como especialista verificado, suas respostas no tema recebem o selo de resposta verificada.
+            </p>
+
+            {specialties.length > 0 && (
+              <div className="mb-3">
+                <p className="text-xs text-gray-500 mb-1.5">Seus temas verificados</p>
+                <div className="flex flex-wrap gap-2">
+                  {specialties.map(s => (
+                    <span
+                      key={s.id}
+                      className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full text-white"
+                      style={{ backgroundColor: '#034EA2' }}
+                    >
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      {s.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {specRequests.length > 0 && (
+              <div className="mb-3 space-y-1.5">
+                {specRequests.map(r => (
+                  <div key={r.id} className="flex items-center justify-between gap-2 text-xs bg-gray-50 border border-gray-200 rounded px-2.5 py-1.5">
+                    <span className="text-gray-600 truncate">{r.category_name}</span>
+                    <span
+                      className={`flex-shrink-0 font-semibold px-1.5 py-0.5 rounded ${
+                        r.status === 'pending' ? 'bg-yellow-100 text-yellow-700'
+                        : r.status === 'approved' ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-600'
+                      }`}
+                    >
+                      {r.status === 'pending' ? 'Em análise' : r.status === 'approved' ? 'Aprovada' : 'Recusada'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <select
+                value={specCat}
+                onChange={e => setSpecCat(e.target.value)}
+                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-400"
+              >
+                <option value="">Selecione um tema...</option>
+                {allCategories
+                  .filter(c => !specialties.some(s => s.id === c.id))
+                  .map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+              </select>
+              <textarea
+                value={specJust}
+                onChange={e => setSpecJust(e.target.value)}
+                rows={2}
+                placeholder="Conte sua experiência no tema (ajuda o administrador a avaliar)"
+                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-400 resize-none placeholder-gray-400"
+              />
+              <button
+                type="button"
+                onClick={handleSolicitarEspecializacao}
+                disabled={specSending}
+                className="text-sm text-white font-semibold px-4 py-2 rounded transition hover:opacity-90 disabled:opacity-50"
+                style={{ backgroundColor: '#034EA2' }}
+              >
+                {specSending ? 'Enviando...' : 'Solicitar especialização'}
+              </button>
+              {specMsg && <p className="text-xs text-gray-600">{specMsg}</p>}
+            </div>
+          </div>
 
           {/* Email notifications */}
           <div>

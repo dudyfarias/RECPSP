@@ -117,6 +117,27 @@ export default function Admin() {
     refetchUsers();
   }
 
+  // ====== Solicitacoes de especialista ======
+  const { data: specRequests, refetch: refetchSpecRequests } = useQuery({
+    queryKey: ['admin-specialist-requests'],
+    queryFn: () => apiFetch('/admin/specialist/requests', {}, token),
+    enabled: !!token && user?.role === 'admin',
+  });
+  const specPending = specRequests?.filter(r => r.status === 'pending') || [];
+
+  async function handleSpecReview(id, status) {
+    try {
+      await apiFetch(`/admin/specialist/requests/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status }),
+      }, token);
+      refetchSpecRequests();
+      refetchUsers();
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
   // ====== Resources ======
   const { data: resources, refetch: refetchResources } = useQuery({
     queryKey: ['admin-resources'],
@@ -260,6 +281,16 @@ export default function Admin() {
               }`}
             >
               Usuários ({users?.length || 0})
+            </button>
+            <button
+              onClick={() => setActiveTab('specialists')}
+              className={`px-4 py-2.5 text-sm font-medium rounded-t-lg transition ${
+                activeTab === 'specialists'
+                  ? 'bg-white border border-b-white border-gray-200 -mb-px text-gray-800'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Especialistas ({specPending.length})
             </button>
             <button
               onClick={() => setActiveTab('resources')}
@@ -591,6 +622,82 @@ export default function Admin() {
       })()}
 
       {/* ====== Aba Capacitação (admin only) ====== */}
+      {/* ====== Aba Especialistas ====== */}
+      {activeTab === 'specialists' && user.role === 'admin' && (
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Solicitações de especialização ({specPending.length} pendente{specPending.length === 1 ? '' : 's'})
+            </span>
+            {specPending.length === 0 && (
+              <span className="text-xs text-green-600 font-medium">Nenhuma solicitação pendente</span>
+            )}
+          </div>
+
+          {!specRequests || specRequests.length === 0 ? (
+            <div className="text-center py-12">
+              <svg className="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm text-gray-400">Nenhuma solicitação recebida</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {specRequests.map(r => (
+                <div key={r.id} className="px-5 py-4">
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <Link to={`/user/${r.user_id}`} className="font-semibold text-sm text-gray-800 hover:text-blue-600 transition">
+                          {r.username}
+                        </Link>
+                        <span
+                          className="text-xs font-medium text-white px-2 py-0.5 rounded-sm"
+                          style={{ backgroundColor: r.category_color || '#6366f1' }}
+                        >
+                          {r.category_name}
+                        </span>
+                        <span
+                          className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                            r.status === 'pending' ? 'bg-yellow-100 text-yellow-700'
+                            : r.status === 'approved' ? 'bg-green-100 text-green-700'
+                            : 'bg-red-100 text-red-600'
+                          }`}
+                        >
+                          {r.status === 'pending' ? 'Em análise' : r.status === 'approved' ? 'Aprovada' : 'Recusada'}
+                        </span>
+                      </div>
+                      {r.organization && <p className="text-xs text-gray-400 mb-1">{r.organization}</p>}
+                      {r.justification && (
+                        <p className="text-sm text-gray-600 leading-relaxed">{r.justification}</p>
+                      )}
+                    </div>
+
+                    {r.status === 'pending' && (
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => handleSpecReview(r.id, 'approved')}
+                          className="text-xs font-semibold text-white px-3 py-1.5 rounded transition hover:opacity-90"
+                          style={{ backgroundColor: '#0B9247' }}
+                        >
+                          Aprovar
+                        </button>
+                        <button
+                          onClick={() => handleSpecReview(r.id, 'rejected')}
+                          className="text-xs font-semibold px-3 py-1.5 rounded border border-gray-300 text-gray-600 transition hover:bg-gray-50"
+                        >
+                          Recusar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {activeTab === 'resources' && user.role === 'admin' && (
         <div className="space-y-4">
           {/* Formulário: Adicionar Curso/Link */}

@@ -10,9 +10,10 @@ function formatDateLong(dateStr) {
   return new Date(dateStr).toLocaleDateString('pt-BR', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-const ROLE_LABELS = { user: 'Usuário', moderator: 'Moderador', admin: 'Administrador' };
+const ROLE_LABELS = { user: 'Usuário', especialista: 'Especialista', moderator: 'Moderador', admin: 'Administrador' };
 const ROLE_STYLES = {
   user: 'bg-gray-100 text-gray-600',
+  especialista: 'bg-[#034EA214] text-[#034EA2]',
   moderator: 'bg-blue-100 text-blue-700',
   admin: 'bg-yellow-100 text-yellow-700',
 };
@@ -99,6 +100,25 @@ export default function UserProfile() {
           <span className={`text-xs px-3 py-1 rounded-full font-medium mt-2 ${ROLE_STYLES[profile.role] || ROLE_STYLES.user}`}>
             {ROLE_LABELS[profile.role] || 'Usuário'}
           </span>
+
+          {/* Especializações verificadas */}
+          {profile.specialties?.length > 0 && (
+            <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+              {profile.specialties.map(s => (
+                <span
+                  key={s.id}
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full text-white"
+                  style={{ backgroundColor: '#034EA2' }}
+                  title={`Especialista verificado em ${s.name}`}
+                >
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  {s.name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Info */}

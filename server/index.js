@@ -178,6 +178,36 @@ try { db.exec('ALTER TABLE topics ADD COLUMN video_url TEXT DEFAULT ""'); } catc
 // Adicionar coluna status para moderacao de topicos com imagem/video
 try { db.exec('ALTER TABLE topics ADD COLUMN status TEXT DEFAULT "approved"'); } catch {}
 
+// Especialistas: especializacoes concedidas e solicitacoes de especializacao
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS user_specialties (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+    granted_by INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, category_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+  )
+`).run();
+
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS specialist_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+    justification TEXT DEFAULT '',
+    status TEXT DEFAULT 'pending',
+    reviewed_by INTEGER,
+    review_note TEXT DEFAULT '',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+  )
+`).run();
+
 // Tabela de categorias do usuario (interesses)
 db.exec(`
   CREATE TABLE IF NOT EXISTS user_categories (
@@ -512,6 +542,43 @@ for (const [oldName, newName] of tagFixes) {
   try { db.prepare('UPDATE tags SET name = ? WHERE name = ?').run(newName, oldName); } catch {}
 }
 
+// =================== ESPECIALISTAS DE EXEMPLO (idempotente) ===================
+// Concede especializacoes de demonstracao a usuarios de teste, para que as
+// respostas deles nas categorias correspondentes apareçam como verificadas.
+const especialistasDemo = [
+  ['MariaLicitacao', 'Licitação'],
+  ['JoaoContratos', 'Obras Públicas'],
+  ['AnaSustentavel', 'Sustentabilidade'],
+  ['FernandaGestao', 'Governança'],
+];
+try {
+  const adminId = db.prepare("SELECT id FROM users WHERE role = 'admin' ORDER BY id LIMIT 1").get()?.id ?? null;
+  for (const [username, catName] of especialistasDemo) {
+    const u = db.prepare('SELECT id, role FROM users WHERE username = ?').get(username);
+    const c = db.prepare('SELECT id FROM categories WHERE name = ?').get(catName);
+    if (!u || !c) continue;
+    db.prepare('INSERT OR IGNORE INTO user_specialties (user_id, category_id, granted_by) VALUES (?, ?, ?)').run(u.id, c.id, adminId);
+    if (u.role !== 'admin') {
+      db.prepare("UPDATE users SET role = 'especialista' WHERE id = ? AND role != 'admin'").run(u.id);
+    }
+  }
+  // Uma solicitacao pendente, para o admin ter o que analisar na demonstracao
+  const carlos = db.prepare('SELECT id FROM users WHERE username = ?').get('CarlosPregao');
+  const catDireta = db.prepare('SELECT id FROM categories WHERE name = ?').get('Contratação Direta');
+  if (carlos && catDireta) {
+    const jaTem = db.prepare('SELECT id FROM specialist_requests WHERE user_id = ? AND category_id = ?').get(carlos.id, catDireta.id);
+    if (!jaTem) {
+      db.prepare(`INSERT INTO specialist_requests (user_id, category_id, justification, status)
+                  VALUES (?, ?, ?, 'pending')`)
+        .run(carlos.id, catDireta.id, 'Atuo há 8 anos com dispensa e inexigibilidade de licitação no Governo do Estado da Bahia.');
+    }
+  }
+  const totalEsp = db.prepare('SELECT COUNT(*) as c FROM user_specialties').get().c;
+  console.log(`[especialistas] ${totalEsp} especializações ativas`);
+} catch (err) {
+  console.log('[especialistas] erro ao aplicar seed:', err.message);
+}
+
 // =================== MIDDLEWARES ===================
 const ALLOWED_ORIGINS = [
   'https://recpsp.onrender.com',
@@ -645,6 +712,11 @@ app.get('/api/auth/me', auth, (req, res) => {
     JOIN categories c ON uc.category_id = c.id
     WHERE uc.user_id = ?
   `).all(req.user.id);
+  user.specialties = db.prepare(`
+    SELECT c.id, c.name, c.color, us.created_at FROM user_specialties us
+    JOIN categories c ON us.category_id = c.id
+    WHERE us.user_id = ? ORDER BY c.name
+  `).all(req.user.id);
   res.json(user);
 });
 
@@ -713,6 +785,13 @@ app.get('/api/users/:id', (req, res) => {
     SELECT c.id, c.name, c.color FROM user_categories uc
     JOIN categories c ON uc.category_id = c.id
     WHERE uc.user_id = ?
+  `).all(req.params.id);
+
+  // Especializacoes verificadas
+  u.specialties = db.prepare(`
+    SELECT c.id, c.name, c.color FROM user_specialties us
+    JOIN categories c ON us.category_id = c.id
+    WHERE us.user_id = ? ORDER BY c.name
   `).all(req.params.id);
 
   res.json(u);
@@ -1158,7 +1237,10 @@ app.get('/api/topics/:id', optionalAuth, (req, res) => {
   const posts = db.prepare(`
     SELECT p.*, u.username, u.role, u.created_at as user_since,
       (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
-      (SELECT COUNT(*) FROM post_dislikes WHERE post_id = p.id) as dislike_count
+      (SELECT COUNT(*) FROM post_dislikes WHERE post_id = p.id) as dislike_count,
+      (SELECT COUNT(*) FROM user_specialties us
+         JOIN topics t2 ON t2.id = p.topic_id
+        WHERE us.user_id = p.user_id AND us.category_id = t2.category_id) as is_specialist_answer
     FROM posts p JOIN users u ON p.user_id = u.id
     WHERE p.topic_id = ? ORDER BY p.created_at ASC
   `).all(req.params.id);
@@ -1231,7 +1313,13 @@ app.post('/api/posts', auth, (req, res) => {
   if (topic.locked && req.user.role !== 'admin') return res.status(403).json({ error: 'Este topico esta bloqueado' });
 
   const result = db.prepare('INSERT INTO posts (content, topic_id, user_id) VALUES (?, ?, ?)').run(content, topic_id, req.user.id);
-  const post = db.prepare('SELECT p.*, u.username, u.role FROM posts p JOIN users u ON p.user_id = u.id WHERE p.id = ?').get(result.lastInsertRowid);
+  const post = db.prepare(`
+    SELECT p.*, u.username, u.role,
+      (SELECT COUNT(*) FROM user_specialties us
+         JOIN topics t2 ON t2.id = p.topic_id
+        WHERE us.user_id = p.user_id AND us.category_id = t2.category_id) as is_specialist_answer
+    FROM posts p JOIN users u ON p.user_id = u.id WHERE p.id = ?
+  `).get(result.lastInsertRowid);
   res.json(post);
 });
 
@@ -1551,14 +1639,122 @@ app.delete('/api/admin/users/:id', auth, adminOnly, (req, res) => {
 
 app.put('/api/admin/users/:id/role', auth, adminOnly, (req, res) => {
   const { role } = req.body;
-  if (!role || !['user', 'moderator', 'admin'].includes(role)) {
-    return res.status(400).json({ error: 'Papel invalido. Use: user, moderator ou admin' });
+  if (!role || !['user', 'especialista', 'moderator', 'admin'].includes(role)) {
+    return res.status(400).json({ error: 'Papel invalido. Use: user, especialista, moderator ou admin' });
   }
   const target = db.prepare('SELECT id, role FROM users WHERE id = ?').get(req.params.id);
   if (!target) return res.status(404).json({ error: 'Usuario nao encontrado' });
   if (target.id === req.user.id) return res.status(400).json({ error: 'Nao e possivel alterar seu proprio papel' });
   db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, req.params.id);
   res.json({ ok: true, role });
+});
+
+// =================== ESPECIALISTAS ===================
+
+// Minhas especializacoes + solicitacoes
+app.get('/api/specialist/me', auth, (req, res) => {
+  const specialties = db.prepare(`
+    SELECT c.id, c.name, c.color, us.created_at FROM user_specialties us
+    JOIN categories c ON us.category_id = c.id
+    WHERE us.user_id = ? ORDER BY c.name
+  `).all(req.user.id);
+  const requests = db.prepare(`
+    SELECT sr.id, sr.category_id, sr.justification, sr.status, sr.review_note,
+           sr.created_at, sr.reviewed_at, c.name as category_name, c.color as category_color
+    FROM specialist_requests sr
+    JOIN categories c ON sr.category_id = c.id
+    WHERE sr.user_id = ? ORDER BY sr.created_at DESC
+  `).all(req.user.id);
+  res.json({ specialties, requests });
+});
+
+// Solicitar especializacao em um tema
+app.post('/api/specialist/requests', auth, (req, res) => {
+  const { category_id, justification } = req.body;
+  if (!category_id) return res.status(400).json({ error: 'Selecione um tema' });
+  const cat = db.prepare('SELECT id FROM categories WHERE id = ?').get(category_id);
+  if (!cat) return res.status(404).json({ error: 'Tema nao encontrado' });
+
+  const jaEspecialista = db.prepare('SELECT id FROM user_specialties WHERE user_id = ? AND category_id = ?').get(req.user.id, category_id);
+  if (jaEspecialista) return res.status(400).json({ error: 'Voce ja e especialista neste tema' });
+
+  const pendente = db.prepare("SELECT id FROM specialist_requests WHERE user_id = ? AND category_id = ? AND status = 'pending'").get(req.user.id, category_id);
+  if (pendente) return res.status(400).json({ error: 'Ja existe uma solicitacao pendente para este tema' });
+
+  const result = db.prepare(`INSERT INTO specialist_requests (user_id, category_id, justification, status)
+                             VALUES (?, ?, ?, 'pending')`)
+    .run(req.user.id, category_id, (justification || '').trim());
+
+  // Notificar admins
+  const admins = db.prepare("SELECT id FROM users WHERE role = 'admin'").all();
+  const notif = db.prepare('INSERT INTO notifications (user_id, type, content, reference_id) VALUES (?, ?, ?, ?)');
+  for (const a of admins) {
+    notif.run(a.id, 'specialist_request', `${req.user.username} solicitou especialização`, result.lastInsertRowid);
+  }
+
+  res.status(201).json({ ok: true, id: result.lastInsertRowid });
+});
+
+// Admin: listar solicitacoes
+app.get('/api/admin/specialist/requests', auth, adminOnly, (req, res) => {
+  const requests = db.prepare(`
+    SELECT sr.id, sr.user_id, sr.category_id, sr.justification, sr.status, sr.review_note,
+           sr.created_at, sr.reviewed_at,
+           u.username, u.organization, u.role,
+           c.name as category_name, c.color as category_color
+    FROM specialist_requests sr
+    JOIN users u ON sr.user_id = u.id
+    JOIN categories c ON sr.category_id = c.id
+    ORDER BY (sr.status = 'pending') DESC, sr.created_at DESC
+  `).all();
+  res.json(requests);
+});
+
+// Admin: aprovar ou recusar solicitacao
+app.put('/api/admin/specialist/requests/:id', auth, adminOnly, (req, res) => {
+  const { status, review_note } = req.body;
+  if (!['approved', 'rejected'].includes(status)) {
+    return res.status(400).json({ error: 'Status invalido. Use: approved ou rejected' });
+  }
+  const reqRow = db.prepare('SELECT * FROM specialist_requests WHERE id = ?').get(req.params.id);
+  if (!reqRow) return res.status(404).json({ error: 'Solicitacao nao encontrada' });
+  if (reqRow.status !== 'pending') return res.status(400).json({ error: 'Esta solicitacao ja foi analisada' });
+
+  const cat = db.prepare('SELECT name FROM categories WHERE id = ?').get(reqRow.category_id);
+
+  db.prepare(`UPDATE specialist_requests
+              SET status = ?, reviewed_by = ?, review_note = ?, reviewed_at = CURRENT_TIMESTAMP
+              WHERE id = ?`)
+    .run(status, req.user.id, (review_note || '').trim(), req.params.id);
+
+  if (status === 'approved') {
+    db.prepare('INSERT OR IGNORE INTO user_specialties (user_id, category_id, granted_by) VALUES (?, ?, ?)')
+      .run(reqRow.user_id, reqRow.category_id, req.user.id);
+    // Promove a especialista (sem rebaixar admin/moderador)
+    db.prepare("UPDATE users SET role = 'especialista' WHERE id = ? AND role = 'user'").run(reqRow.user_id);
+  }
+
+  db.prepare('INSERT INTO notifications (user_id, type, content, reference_id) VALUES (?, ?, ?, ?)')
+    .run(
+      reqRow.user_id,
+      'specialist_request',
+      status === 'approved'
+        ? `Sua especialização em ${cat?.name} foi aprovada`
+        : `Sua solicitação de especialização em ${cat?.name} foi recusada`,
+      reqRow.id
+    );
+
+  res.json({ ok: true, status });
+});
+
+// Admin: revogar especializacao
+app.delete('/api/admin/users/:id/specialties/:categoryId', auth, adminOnly, (req, res) => {
+  db.prepare('DELETE FROM user_specialties WHERE user_id = ? AND category_id = ?').run(req.params.id, req.params.categoryId);
+  const restantes = db.prepare('SELECT COUNT(*) as c FROM user_specialties WHERE user_id = ?').get(req.params.id).c;
+  if (restantes === 0) {
+    db.prepare("UPDATE users SET role = 'user' WHERE id = ? AND role = 'especialista'").run(req.params.id);
+  }
+  res.json({ ok: true });
 });
 
 // =================== MODERACAO DE TOPICOS ===================
