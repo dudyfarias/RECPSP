@@ -22,8 +22,14 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# database
+# database (artefato de runtime: recriado pelo seed, nunca versionado)
 server/forum.db
+server/forum.db-shm
+server/forum.db-wal
+/forum.db
+
+# logs
+firebase-debug.log*
 
 # environment
 .env

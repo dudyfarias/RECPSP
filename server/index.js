@@ -155,6 +155,31 @@ db.exec(`
     FOREIGN KEY (option_id) REFERENCES poll_options(id),
     FOREIGN KEY (topic_id) REFERENCES topics(id)
   );
+
+  CREATE TABLE IF NOT EXISTS user_specialties (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+    granted_by INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, category_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS specialist_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+    justification TEXT DEFAULT '',
+    status TEXT DEFAULT 'pending',
+    reviewed_by INTEGER,
+    review_note TEXT DEFAULT '',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+  );
 `);
 
 // Adicionar coluna best_answer se nao existir
@@ -177,36 +202,6 @@ try { db.exec('ALTER TABLE topics ADD COLUMN video_url TEXT DEFAULT ""'); } catc
 
 // Adicionar coluna status para moderacao de topicos com imagem/video
 try { db.exec('ALTER TABLE topics ADD COLUMN status TEXT DEFAULT "approved"'); } catch {}
-
-// Especialistas: especializacoes concedidas e solicitacoes de especializacao
-db.prepare(`
-  CREATE TABLE IF NOT EXISTS user_specialties (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    category_id INTEGER NOT NULL,
-    granted_by INTEGER,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, category_id),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (category_id) REFERENCES categories(id)
-  )
-`).run();
-
-db.prepare(`
-  CREATE TABLE IF NOT EXISTS specialist_requests (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    category_id INTEGER NOT NULL,
-    justification TEXT DEFAULT '',
-    status TEXT DEFAULT 'pending',
-    reviewed_by INTEGER,
-    review_note TEXT DEFAULT '',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    reviewed_at DATETIME,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (category_id) REFERENCES categories(id)
-  )
-`).run();
 
 // Tabela de categorias do usuario (interesses)
 db.exec(`
@@ -542,9 +537,10 @@ for (const [oldName, newName] of tagFixes) {
   try { db.prepare('UPDATE tags SET name = ? WHERE name = ?').run(newName, oldName); } catch {}
 }
 
-// =================== ESPECIALISTAS DE EXEMPLO (idempotente) ===================
-// Concede especializacoes de demonstracao a usuarios de teste, para que as
-// respostas deles nas categorias correspondentes apareçam como verificadas.
+// =================== ESPECIALISTAS DE EXEMPLO ===================
+// Roda UMA UNICA VEZ, em banco sem nenhuma especializacao/solicitacao.
+// Depois disso o seed nunca mais interfere: revogar ou recusar pelo painel
+// admin e' definitivo e nao volta atras no proximo restart.
 const especialistasDemo = [
   ['MariaLicitacao', 'Licitação'],
   ['JoaoContratos', 'Obras Públicas'],
@@ -552,29 +548,31 @@ const especialistasDemo = [
   ['FernandaGestao', 'Governança'],
 ];
 try {
-  const adminId = db.prepare("SELECT id FROM users WHERE role = 'admin' ORDER BY id LIMIT 1").get()?.id ?? null;
-  for (const [username, catName] of especialistasDemo) {
-    const u = db.prepare('SELECT id, role FROM users WHERE username = ?').get(username);
-    const c = db.prepare('SELECT id FROM categories WHERE name = ?').get(catName);
-    if (!u || !c) continue;
-    db.prepare('INSERT OR IGNORE INTO user_specialties (user_id, category_id, granted_by) VALUES (?, ?, ?)').run(u.id, c.id, adminId);
-    if (u.role !== 'admin') {
-      db.prepare("UPDATE users SET role = 'especialista' WHERE id = ? AND role != 'admin'").run(u.id);
+  const totalEspecialidades = db.prepare('SELECT COUNT(*) as c FROM user_specialties').get().c;
+  const totalSolicitacoes = db.prepare('SELECT COUNT(*) as c FROM specialist_requests').get().c;
+
+  if (totalEspecialidades === 0 && totalSolicitacoes === 0) {
+    const adminId = db.prepare("SELECT id FROM users WHERE role = 'admin' ORDER BY id LIMIT 1").get()?.id ?? null;
+    for (const [username, catName] of especialistasDemo) {
+      const u = db.prepare('SELECT id, role FROM users WHERE username = ?').get(username);
+      const c = db.prepare('SELECT id FROM categories WHERE name = ?').get(catName);
+      if (!u || !c) continue;
+      db.prepare('INSERT OR IGNORE INTO user_specialties (user_id, category_id, granted_by) VALUES (?, ?, ?)').run(u.id, c.id, adminId);
+      db.prepare("UPDATE users SET role = 'especialista' WHERE id = ? AND role = 'user'").run(u.id);
     }
-  }
-  // Uma solicitacao pendente, para o admin ter o que analisar na demonstracao
-  const carlos = db.prepare('SELECT id FROM users WHERE username = ?').get('CarlosPregao');
-  const catDireta = db.prepare('SELECT id FROM categories WHERE name = ?').get('Contratação Direta');
-  if (carlos && catDireta) {
-    const jaTem = db.prepare('SELECT id FROM specialist_requests WHERE user_id = ? AND category_id = ?').get(carlos.id, catDireta.id);
-    if (!jaTem) {
+    // Uma solicitacao pendente, para o admin ter o que analisar na demonstracao
+    const carlos = db.prepare('SELECT id FROM users WHERE username = ?').get('CarlosPregao');
+    const catDireta = db.prepare('SELECT id FROM categories WHERE name = ?').get('Contratação Direta');
+    if (carlos && catDireta) {
       db.prepare(`INSERT INTO specialist_requests (user_id, category_id, justification, status)
                   VALUES (?, ?, ?, 'pending')`)
         .run(carlos.id, catDireta.id, 'Atuo há 8 anos com dispensa e inexigibilidade de licitação no Governo do Estado da Bahia.');
     }
+    const criadas = db.prepare('SELECT COUNT(*) as c FROM user_specialties').get().c;
+    console.log(`[especialistas] seed inicial aplicado: ${criadas} especializações + 1 solicitação pendente`);
+  } else {
+    console.log(`[especialistas] ${totalEspecialidades} especializações ativas (seed já aplicado)`);
   }
-  const totalEsp = db.prepare('SELECT COUNT(*) as c FROM user_specialties').get().c;
-  console.log(`[especialistas] ${totalEsp} especializações ativas`);
 } catch (err) {
   console.log('[especialistas] erro ao aplicar seed:', err.message);
 }
